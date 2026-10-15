@@ -26,7 +26,7 @@
 	let robot: ReturnType<typeof Robot> | undefined = $state();
 
 	// Teleport: the robot vanishes where it stands (out), moves, then appears at its new place (in).
-	// Keep in step with the keyframes below.
+	// The animations below read these durations through --out and --in.
 	const OUT_MS = 250,
 		IN_MS = 320;
 
@@ -97,9 +97,9 @@
 	data-where={shown}
 	data-phase={phase}
 	data-emotion={emotion}
-	style={shown === 'anchor' && rect
+	style="--out:{OUT_MS}ms;--in:{IN_MS}ms;{shown === 'anchor' && rect
 		? `top:${rect.top}px;left:${rect.left}px;width:${rect.size}px;height:${rect.size}px`
-		: undefined}
+		: ''}"
 	hidden={shown === 'hidden' || (shown === 'anchor' && !rect)}
 >
 	<div class="stage">
@@ -149,6 +149,7 @@
 		width: 100%;
 		height: 100%;
 		transform-origin: 50% 60%;
+		--glow: var(--robot-glow, rgba(127, 211, 181, 0.85));
 	}
 	/* Flash of light around the robot, and a beam it collapses into or stretches out of */
 	.stage::before,
@@ -161,11 +162,7 @@
 	.stage::after {
 		inset: -25%;
 		border-radius: 50%;
-		background: radial-gradient(
-			circle,
-			var(--robot-glow, rgba(127, 211, 181, 0.85)) 0%,
-			transparent 62%
-		);
+		background: radial-gradient(circle, var(--glow) 0%, transparent 62%);
 	}
 	.stage::before {
 		left: calc(50% - 2px);
@@ -174,25 +171,25 @@
 		bottom: -10%;
 		border-radius: 2px;
 		background: linear-gradient(transparent, #fff 30%, #fff 70%, transparent);
-		box-shadow: 0 0 12px 3px var(--robot-glow, rgba(127, 211, 181, 0.85));
+		box-shadow: 0 0 12px 3px var(--glow);
 	}
 	[data-phase='out'] .stage {
-		animation: teleport-out 250ms ease-in forwards;
+		animation: teleport-out var(--out) ease-in forwards;
 	}
 	[data-phase='out'] .stage::after {
-		animation: flash-out 250ms ease-out;
+		animation: flash-out var(--out) ease-out;
 	}
 	[data-phase='out'] .stage::before {
-		animation: beam-out 250ms ease-in;
+		animation: beam-out var(--out) ease-in;
 	}
 	[data-phase='in'] .stage {
-		animation: teleport-in 320ms ease-out;
+		animation: teleport-in var(--in) ease-out;
 	}
 	[data-phase='in'] .stage::after {
-		animation: flash-in 320ms ease-out;
+		animation: flash-in var(--in) ease-out;
 	}
 	[data-phase='in'] .stage::before {
-		animation: beam-in 320ms ease-out;
+		animation: beam-in var(--in) ease-out;
 	}
 	@keyframes teleport-out {
 		35% {

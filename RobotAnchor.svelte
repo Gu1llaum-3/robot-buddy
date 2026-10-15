@@ -1,12 +1,12 @@
 <!--
 	@component
-	Reserves the robot's place in a page: give it a size (class or style), and a RobotDock set to
+	Reserves the robot's place in a page: give it a size through its class, and a RobotDock set to
 	`where="anchor"` stands over it, following its position and size.
 -->
 <script lang="ts">
 	import { anchor } from './anchor.svelte.ts';
 
-	let { class: cls = '', style = '' }: { class?: string; style?: string } = $props();
+	let { class: cls = '' }: { class?: string } = $props();
 	let el: HTMLDivElement;
 
 	$effect(() => {
@@ -17,4 +17,4 @@
 	});
 </script>
 
-<div bind:this={el} class={cls} {style} aria-hidden="true"></div>
+<div bind:this={el} class={cls} aria-hidden="true"></div>
