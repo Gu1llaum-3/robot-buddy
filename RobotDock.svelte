@@ -96,6 +96,7 @@
 	class="dock"
 	data-where={shown}
 	data-phase={phase}
+	data-emotion={emotion}
 	style={shown === 'anchor' && rect
 		? `top:${rect.top}px;left:${rect.left}px;width:${rect.size}px;height:${rect.size}px`
 		: undefined}
