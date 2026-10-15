@@ -21,6 +21,8 @@ export type Emotion =
 export type RobotOptions = {
 	/** Pokes tickle him, three quick ones make him dizzy. Off: the canvas only follows the cursor. */
 	interactive?: boolean;
+	/** Element whose hover and pokes the robot feels; defaults to the canvas. */
+	target?: HTMLElement;
 };
 
 export type Robot = {
@@ -231,6 +233,7 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 	const layer = document.createElement('canvas');
 	const lctx = layer.getContext('2d')!;
 	let interactive = options.interactive ?? true;
+	const target = options.target ?? canvas;
 
 	const eyes = [0, 1].map(
 		() =>
@@ -988,9 +991,9 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 		setEyeTargets(ANNOYED);
 	}
 	window.addEventListener('pointermove', onPointerMove, { passive: true });
-	canvas.addEventListener('pointerenter', onEnter);
-	canvas.addEventListener('pointerleave', onLeave);
-	canvas.addEventListener('pointerdown', onPointerDown);
+	target.addEventListener('pointerenter', onEnter);
+	target.addEventListener('pointerleave', onLeave);
+	target.addEventListener('pointerdown', onPointerDown);
 
 	raf = requestAnimationFrame(frame);
 
@@ -1012,9 +1015,9 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 			clearTimeout(wakeTimer);
 			observer.disconnect();
 			window.removeEventListener('pointermove', onPointerMove);
-			canvas.removeEventListener('pointerenter', onEnter);
-			canvas.removeEventListener('pointerleave', onLeave);
-			canvas.removeEventListener('pointerdown', onPointerDown);
+			target.removeEventListener('pointerenter', onEnter);
+			target.removeEventListener('pointerleave', onLeave);
+			target.removeEventListener('pointerdown', onPointerDown);
 		}
 	};
 }
