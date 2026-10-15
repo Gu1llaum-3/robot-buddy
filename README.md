@@ -61,7 +61,7 @@ Dans la page où il doit se poser, réserver sa place (la taille vient de la cla
 
 Variables CSS facultatives : `--robot-corner-size` (72 px), `--robot-corner-size-narrow` (48 px,
 sous 760 px), `--robot-focus` (anneau de focus du bouton), `--robot-glow` (lueur de la
-téléportation).
+téléportation), `--robot-z` (15 : au-dessus de la page, sous ses menus et panneaux).
 
 Sans Svelte :
 

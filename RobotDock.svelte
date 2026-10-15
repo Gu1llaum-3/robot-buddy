@@ -120,7 +120,8 @@
 <style>
 	.dock {
 		position: fixed;
-		z-index: 40;
+		/* Above the page, below its menus and overlays (raise it in a page that needs it). */
+		z-index: var(--robot-z, 15);
 	}
 	/* Between the welcome and the chat, the robot shrinks or grows instead of teleporting. */
 	.dock[data-where='anchor'][data-phase='idle'] {
