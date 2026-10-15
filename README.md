@@ -54,8 +54,14 @@ Dans la page où il doit se poser, réserver sa place (la taille vient de la cla
 - `emotion` : `neutral`, `happy`, `love`, `curious`, `surprised`, `worried`, `sad`, `angry`,
   `suspicious`, `tired`, `sleep`, `focus`.
 - `celebrate()` (via `bind:this`) : saut de joie et étincelles, à la fin d'une tâche.
-- Sur l'emplacement, le robot réagit aux tapes (chatouille, tête qui tourne après trois tapes,
-  cœur après un long survol) ; dans le coin, il cligne et suit le regard seulement.
+- Sur l'emplacement, le robot réagit aux tapes (chatouille, tête qui tourne après trois tapes)
+  et à un clic sur son antenne (surpris ou curieux, au hasard) ; dans le coin, un clic appelle
+  `onactivate`.
+- Partout : un long survol le rend amoureux (yeux en cœur) jusqu'à ce que le curseur s'en aille ;
+  sans clic ni touche pendant une minute (bouger la souris ne compte pas), il s'endort, et le
+  premier clic ou la première touche le réveille, surpris. Il ne s'endort pas pendant `focus`.
+- Ces réactions passent par-dessus `emotion` puis la rendent : la logique est dans `mood.ts`
+  (testée dans `mood.test.ts`) ; `createRobot(canvas, { sleepAfter })` change le délai.
 - Changement de place : téléportation (il se replie en rayon de lumière puis réapparaît). Avec
   `prefers-reduced-motion`, il change de place sans animation.
 

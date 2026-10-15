@@ -4,6 +4,8 @@
 // Motion and interaction ideas (sphere-projected eyes, spring squash, poke / dizzy) are
 // inspired by the MIT-licensed code of Coucou; the character itself is our own.
 
+import { createMood } from './mood.ts';
+
 export type Emotion =
 	| 'neutral'
 	| 'happy'
@@ -23,6 +25,8 @@ export type RobotOptions = {
 	interactive?: boolean;
 	/** Element whose hover and pokes the robot feels; defaults to the canvas. */
 	target?: HTMLElement;
+	/** Inactivity (no click, no key on the page) before he falls asleep, in ms; 60 s by default. */
+	sleepAfter?: number;
 };
 
 export type Robot = {
@@ -234,6 +238,8 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 	const lctx = layer.getContext('2d')!;
 	let interactive = options.interactive ?? true;
 	const target = options.target ?? canvas;
+	// What he shows: the host's expression, or a reaction of his own (love, antenna, sleep)
+	const mood = createMood({ sleepAfter: options.sleepAfter }, performance.now());
 
 	const eyes = [0, 1].map(
 		() =>
@@ -272,8 +278,7 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 		blinkQueue = 0;
 	let nextBlink = performance.now() + 2500,
 		nextLook = performance.now() + 3000;
-	let wakeTimer = 0,
-		zs: number[] = [],
+	let zs: number[] = [],
 		nextZ = 0,
 		last = performance.now();
 	type Heart = {
@@ -299,9 +304,7 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 	};
 	let hearts: Heart[] = [],
 		sparkles: Sparkle[] = [];
-	let hovering = false,
-		hoverStart = 0,
-		nextPet = 0;
+	let hovering = false;
 	let lookAt = { x: 0, y: 0 },
 		lookUntil = 0; // cursor following
 	let pokes: number[] = [],
@@ -402,6 +405,7 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 		body.sx.v += 2; // anticipation
 		celebrateTimer = window.setTimeout(() => {
 			const now = performance.now();
+			mood.setBase('happy');
 			switchEmotion('happy');
 			body.y.v -= 190;
 			body.sy.v += 1.3;
@@ -430,20 +434,6 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 				color: colors[k % colors.length]
 			});
 		}
-	}
-
-	function emitHearts(now: number, n: number) {
-		if (reducedMotion) return;
-		for (let k = 0; k < n; k++)
-			hearts.push({
-				x: 150 + random(-46, 46),
-				y: 62 + random(-6, 8),
-				vx: random(-12, 12),
-				vy: random(-40, -26),
-				born: now + k * 120,
-				life: random(1500, 2100),
-				size: random(6, 9)
-			});
 	}
 
 	// ── Drawing ──────────────────────────────────────────────────────────────
@@ -820,6 +810,8 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 	function frame(now: number) {
 		const dt = Math.min(0.05, (now - last) / 1000);
 		last = now;
+		const wanted = mood.current(now);
+		if (wanted !== emotion) switchEmotion(wanted);
 		const t = reducedMotion ? 0 : now;
 		const dizzy = now < dizzyUntil;
 		const following = now < lookUntil && emotion !== 'sleep' && emotion !== 'focus' && !dizzy;
@@ -862,12 +854,8 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 		}
 		dizzyLevel += ((dizzy ? 1 : 0) - dizzyLevel) * (1 - Math.exp(-dt * 10));
 
-		// Petting: a long hover makes him blush and send a little heart
+		// Under the cursor his eyes widen and he blushes; a long hover turns to love (see mood.ts)
 		const calm = !['angry', 'focus', 'sleep', 'suspicious'].includes(emotion) && !reactUntil;
-		if (interactive && hovering && calm && now - hoverStart > 1200 && now >= nextPet) {
-			emitHearts(now, 1);
-			nextPet = now + 1600;
-		}
 
 		// Focus: schedule straining pushes at irregular intervals
 		if (emotion === 'focus' && !reducedMotion && now >= nextStrain) {
@@ -958,27 +946,33 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 	}
 	function onEnter() {
 		hovering = true;
-		hoverStart = performance.now();
-		nextPet = hoverStart + 1200;
+		mood.hover(true, performance.now());
 		blink();
 	}
 	function onLeave() {
 		hovering = false;
+		mood.hover(false, performance.now());
 	}
-	function onPointerDown() {
+	// The antenna, in the 300×300 drawing: the stalk and its ball above the head
+	function onAntenna(e: PointerEvent) {
+		const r = canvas.getBoundingClientRect();
+		const x = ((e.clientX - r.left) / r.width) * VIEW,
+			y = ((e.clientY - r.top) / r.height) * VIEW;
+		return Math.abs(x - BODY.cx) <= 18 && y >= 18 && y <= BODY.cy - BODY.ry + 6;
+	}
+	function onPointerDown(e: PointerEvent) {
 		if (!interactive) return;
 		const now = performance.now();
-		squish();
 		if (emotion === 'sleep') {
-			// a poke wakes him up
-			switchEmotion('surprised');
-			clearTimeout(wakeTimer);
-			wakeTimer = window.setTimeout(
-				() => emotion === 'surprised' && switchEmotion('neutral'),
-				1500
-			);
+			squish(); // the click itself wakes him up (onActivity)
 			return;
 		}
+		if (onAntenna(e)) {
+			antenna.v += (Math.random() < 0.5 ? -1 : 1) * 14;
+			mood.antenna(now, Math.random() < 0.5 ? 'surprised' : 'curious');
+			return;
+		}
+		squish();
 		if (now < dizzyUntil) return;
 		pokes = pokes.filter((p) => now - p < 1300);
 		pokes.push(now);
@@ -990,7 +984,12 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 		reactUntil = now + 900;
 		setEyeTargets(ANNOYED);
 	}
+	function onActivity() {
+		mood.activity(performance.now());
+	}
 	window.addEventListener('pointermove', onPointerMove, { passive: true });
+	window.addEventListener('pointerdown', onActivity, { capture: true, passive: true });
+	window.addEventListener('keydown', onActivity, { capture: true, passive: true });
 	target.addEventListener('pointerenter', onEnter);
 	target.addEventListener('pointerleave', onLeave);
 	target.addEventListener('pointerdown', onPointerDown);
@@ -999,7 +998,7 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 
 	return {
 		set: (name) => {
-			if (EXPRESSIONS[name] && name !== emotion) switchEmotion(name);
+			if (EXPRESSIONS[name]) mood.setBase(name);
 		},
 		celebrate,
 		blink,
@@ -1012,9 +1011,10 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 		destroy() {
 			cancelAnimationFrame(raf);
 			clearTimeout(celebrateTimer);
-			clearTimeout(wakeTimer);
 			observer.disconnect();
 			window.removeEventListener('pointermove', onPointerMove);
+			window.removeEventListener('pointerdown', onActivity, { capture: true });
+			window.removeEventListener('keydown', onActivity, { capture: true });
 			target.removeEventListener('pointerenter', onEnter);
 			target.removeEventListener('pointerleave', onLeave);
 			target.removeEventListener('pointerdown', onPointerDown);
