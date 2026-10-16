@@ -5,13 +5,17 @@ change d'expression, réagit quand on le touche, s'endort quand personne ne cliq
 téléporte entre un emplacement de page et le coin bas droit de l'écran. Il existe en huit coques
 et dans n'importe quelle couleur.
 
-Tout est dessiné en Canvas 2D : pas de bibliothèque, pas d'image, pas d'appel réseau. Le dossier
-n'importe rien d'autre que `svelte`. Il se copie tel quel dans un autre projet.
+Tout est dessiné en Canvas 2D : pas de bibliothèque, pas d'image, pas d'appel réseau. Le code
+n'importe rien d'autre que `svelte`, et seulement pour les composants : le moteur marche dans
+n'importe quelle page, avec ou sans framework.
+
+Né dans le projet Comptoir (`toryo-agent`), d'où vient son historique. Démo jouable de toutes
+les expressions : [`demo/robot-demo.html`](demo/robot-demo.html), à ouvrir dans un navigateur.
 
 ## Sommaire
 
 1. [Prérequis](#prérequis)
-2. [Installer dans un autre projet](#installer-dans-un-autre-projet)
+2. [Installer](#installer)
 3. [Les fichiers](#les-fichiers)
 4. [Démarrage rapide](#démarrage-rapide)
 5. [Composants](#composants)
@@ -25,6 +29,7 @@ n'importe rien d'autre que `svelte`. Il se copie tel quel dans un autre projet.
 13. [Tests](#tests)
 14. [Ajouter une coque](#ajouter-une-coque)
 15. [Limites connues](#limites-connues)
+16. [Développer le module](#développer-le-module)
 
 ## Prérequis
 
@@ -40,31 +45,48 @@ n'importe rien d'autre que `svelte`. Il se copie tel quel dans un autre projet.
 
 Aucune dépendance npm n'est nécessaire pour faire tourner le robot.
 
-## Installer dans un autre projet
+## Installer
 
-1. Copier le dossier `src/lib/robot/` dans le projet, par exemple dans `src/lib/robot/`. Les
-   fichiers `*.test.ts` sont facultatifs.
-2. Vérifier les prérequis ci-dessus, en particulier les imports en `.ts`.
-3. Brancher le robot (voir [Démarrage rapide](#démarrage-rapide)), puis écrire ce qui dépend du
-   projet (voir [Ce que le projet d'accueil doit écrire](#ce-que-le-projet-daccueil-doit-écrire)).
+Trois façons, de la plus simple à la plus suivie :
 
-Dans les exemples ci-dessous, le module est importé par `$lib/robot/…` ; adapter le chemin à
-l'alias du projet.
+1. **Copier les sources** : le dossier `src/lib/` dans le projet (par exemple dans
+   `src/lib/robot-buddy/`), sans les fichiers `*.test.ts` si l'on ne garde pas les tests. On
+   importe alors les fichiers directement (`./robot-buddy/engine.ts`,
+   `./robot-buddy/RobotDock.svelte`).
+2. **Dépendance git** : `pnpm add github:Gu1llaum-3/robot-buddy` (ou `npm install`). Le script
+   `prepare` construit `dist/` à l'installation. Avec pnpm 10 ou plus, autoriser ce script :
+   `pnpm approve-builds`, ou `onlyBuiltDependencies: [robot-buddy]` dans `pnpm-workspace.yaml`.
+3. **Paquet npm** : pas encore publié (`"private": true` dans `package.json`).
+
+Avec les façons 2 et 3, le paquet a deux points d'entrée :
+
+```ts
+import { createRobot, SHELLS, normalizeLook } from 'robot-buddy'; // tout projet, sans framework
+import { RobotDock, RobotAnchor, Robot, RobotLookPicker } from 'robot-buddy/svelte'; // Svelte 5
+```
+
+`robot-buddy/svelte` réexporte aussi tout `robot-buddy`. Svelte n'est qu'une dépendance
+facultative (`peerDependency`) : un projet sans Svelte utilise le premier point d'entrée seul.
+
+Ensuite : brancher le robot (voir [Démarrage rapide](#démarrage-rapide)), puis écrire ce qui
+dépend du projet (voir [Ce que le projet d'accueil doit écrire](#ce-que-le-projet-daccueil-doit-écrire)).
 
 ## Les fichiers
 
-| Fichier                  | Rôle                                                                     | Dépend de                          |
-| ------------------------ | ------------------------------------------------------------------------ | ---------------------------------- |
-| `engine.ts`              | Moteur : `createRobot(canvas, options)`, dessin, animation, interactions | `mood.ts`, `looks.ts`              |
-| `mood.ts`                | Réactions (amour, antenne, sommeil) par-dessus l'expression demandée     | —                                  |
-| `looks.ts`               | Coques, couleurs proposées, `normalizeLook`, tons tirés d'une couleur    | —                                  |
-| `Robot.svelte`           | Le robot sur un canvas carré qui remplit son parent                      | `engine.ts`, `looks.ts`            |
-| `RobotDock.svelte`       | Une seule instance pour toute l'app : sur l'emplacement ou dans le coin  | `Robot.svelte`, `anchor.svelte.ts` |
-| `RobotAnchor.svelte`     | Emplacement réservé par une page, que le dock vient occuper              | `anchor.svelte.ts`                 |
-| `anchor.svelte.ts`       | État partagé entre `RobotAnchor` et `RobotDock`                          | —                                  |
-| `RobotLookPicker.svelte` | Choix de la coque et de la couleur, avec aperçu                          | `Robot.svelte`, `looks.ts`         |
+| Fichier                  | Rôle                                                                      | Dépend de                          |
+| ------------------------ | ------------------------------------------------------------------------- | ---------------------------------- |
+| `engine.ts`              | Moteur : `createRobot(canvas, options)`, dessin, animation, interactions  | `mood.ts`, `looks.ts`              |
+| `mood.ts`                | Réactions (amour, antenne, sommeil) par-dessus l'expression demandée      | —                                  |
+| `looks.ts`               | Coques, couleurs proposées, `normalizeLook`, tons tirés d'une couleur     | —                                  |
+| `Robot.svelte`           | Le robot sur un canvas carré qui remplit son parent                       | `engine.ts`, `looks.ts`            |
+| `RobotDock.svelte`       | Une seule instance pour toute l'app : sur l'emplacement ou dans le coin   | `Robot.svelte`, `anchor.svelte.ts` |
+| `RobotAnchor.svelte`     | Emplacement réservé par une page, que le dock vient occuper               | `anchor.svelte.ts`                 |
+| `anchor.svelte.ts`       | État partagé entre `RobotAnchor` et `RobotDock`                           | —                                  |
+| `RobotLookPicker.svelte` | Choix de la coque et de la couleur, avec aperçu                           | `Robot.svelte`, `looks.ts`         |
+| `index.ts`               | Point d'entrée `robot-buddy` : moteur et catalogue                        | `engine.ts`, `looks.ts`            |
+| `svelte.ts`              | Point d'entrée `robot-buddy/svelte` : composants, plus tout `robot-buddy` | les composants                     |
 
-`engine.ts`, `mood.ts` et `looks.ts` ne dépendent ni de Svelte ni du DOM au chargement : on peut
+Tous ces fichiers sont dans `src/lib/`. `engine.ts`, `mood.ts` et `looks.ts` ne dépendent ni de Svelte ni du DOM au chargement : on peut
 les utiliser seuls.
 
 ## Démarrage rapide
@@ -76,7 +98,7 @@ ainsi son état (expression, ressorts, sommeil) pendant la navigation.
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import RobotDock from '$lib/robot/RobotDock.svelte';
+	import { RobotDock } from 'robot-buddy/svelte';
 
 	let { children } = $props();
 	const where = $derived(page.url.pathname === '/assistant' ? 'anchor' : 'corner');
@@ -90,7 +112,7 @@ ainsi son état (expression, ressorts, sommeil) pendant la navigation.
 
 ```svelte
 <script lang="ts">
-	import RobotAnchor from '$lib/robot/RobotAnchor.svelte';
+	import { RobotAnchor } from 'robot-buddy/svelte';
 </script>
 
 <RobotAnchor class="mascot" />
@@ -171,8 +193,7 @@ couleur, puis on la recolore.
 
 ```svelte
 <script lang="ts">
-	import RobotLookPicker from '$lib/robot/RobotLookPicker.svelte';
-	import { DEFAULT_LOOK, sameLook } from '$lib/robot/looks.ts';
+	import { DEFAULT_LOOK, RobotLookPicker, sameLook } from 'robot-buddy/svelte';
 
 	let { saved } = $props(); // l'apparence enregistrée
 	let look = $state({ ...saved });
@@ -194,7 +215,7 @@ s'endorment pas.
 ## Le moteur sans Svelte
 
 ```ts
-import { createRobot } from './engine.ts';
+import { createRobot } from 'robot-buddy';
 
 const canvas = document.querySelector('canvas')!; // carré, taillé en CSS
 const robot = createRobot(canvas, {
@@ -301,7 +322,7 @@ Le module ne stocke rien. Il suffit de garder deux chaînes, la coque et la coul
   menthe. Ces comptes suivront ainsi le défaut s'il change un jour.
 - **Ne jamais renommer** un identifiant de coque : il est enregistré tel quel.
 
-Dans ce projet : deux colonnes facultatives `robot_shell` et `robot_color` sur `user`,
+Dans Comptoir, par exemple : deux colonnes facultatives `robot_shell` et `robot_color` sur `user`,
 `src/lib/server/robot-look.ts` (`robotLookOf`, `saveRobotLook`), et la carte « Apparence du
 robot » de `src/routes/(app)/profile/`.
 
@@ -333,10 +354,11 @@ Le composant utilise aussi, s'ils existent, les jetons `--text`, `--text-2`, `--
 
 ## Ce que le projet d'accueil doit écrire
 
-Le module ne connaît ni les routes, ni l'application, ni la base. Dans ce projet, ces parties
-sont écrites à côté, et sont à réécrire ailleurs :
+Le module ne connaît ni les routes, ni l'application, ni la base. Ces parties s'écrivent dans
+chaque projet. Pour exemple, voici où elles sont dans le projet d'origine (Comptoir,
+`toryo-agent`) :
 
-| Quoi                  | Ici                                                            | Rôle                                                                                |
+| Quoi                  | Dans Comptoir                                                  | Rôle                                                                                |
 | --------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | Placement             | `src/lib/ui/robot.ts` (`robotPlacement`)                       | Pour chaque page : sur l'emplacement (grand ou réduit), dans le coin, ou caché      |
 | Humeur                | `src/lib/ui/robot.ts` (`robotMood`)                            | L'état de l'application devient une expression (réfléchit, content, surpris)        |
@@ -355,13 +377,13 @@ sont écrites à côté, et sont à réécrire ailleurs :
 | `RobotLookPicker.svelte.test.ts` | Navigateur   | Une coque se choisit dans sa couleur                                                     |
 
 Les tests « navigateur » demandent le mode navigateur de Vitest (`vitest-browser-svelte`, provider
-Playwright). Dans ce projet : `pnpm test:unit --run`.
+Playwright). Ici : `pnpm test` (voir [Développer le module](#développer-le-module)).
 
 ## Ajouter une coque
 
-1. `looks.ts` : ajouter `{ id, name, color }` à `SHELLS` (un identifiant nouveau, jamais
+1. `src/lib/looks.ts` : ajouter `{ id, name, color }` à `SHELLS` (un identifiant nouveau, jamais
    réutilisé).
-2. `engine.ts` : ajouter son entrée à `SHELL_DRAWINGS`. Seuls `body`, `screen` et `top` sont
+2. `src/lib/engine.ts` : ajouter son entrée à `SHELL_DRAWINGS`. Seuls `body`, `screen` et `top` sont
    obligatoires :
    - `body` : la silhouette ;
    - `screen` : le contour de l'écran, assez grand pour les yeux (environ x 62 à 238, y 110 à
@@ -386,4 +408,19 @@ Playwright). Dans ce projet : `pnpm test:unit --run`.
 - **Rendu côté serveur** : le canvas ne se dessine que dans le navigateur. Au premier affichage
   rendu par le serveur, l'emplacement est vide jusqu'au chargement du script.
 
-Démo jouable de toutes les expressions : `docs/poc/robot-demo.html`.
+## Développer le module
+
+```sh
+pnpm install                          # outils de développement, et construit dist/
+pnpm exec playwright install chromium # une fois, pour les tests navigateur
+pnpm check                            # types (svelte-check)
+pnpm test                             # tests Node et navigateur
+pnpm build                            # paquet dans dist/ (svelte-package)
+pnpm lint                             # mise en forme (Prettier)
+```
+
+- Sources dans `src/lib/`, paquet construit dans `dist/` (ignoré par git). Les imports en `.ts`
+  des sources deviennent des `.js` dans `dist/`.
+- Messages de commit en anglais (conventional commits), comme dans le projet d'origine.
+- Pas encore de licence : en choisir une (par exemple MIT) avant de rendre le dépôt public ou de
+  publier sur npm.
