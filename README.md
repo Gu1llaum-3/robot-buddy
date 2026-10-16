@@ -422,5 +422,7 @@ pnpm lint                             # mise en forme (Prettier)
 - Sources dans `src/lib/`, paquet construit dans `dist/` (ignoré par git). Les imports en `.ts`
   des sources deviennent des `.js` dans `dist/`.
 - Messages de commit en anglais (conventional commits), comme dans le projet d'origine.
-- Pas encore de licence : en choisir une (par exemple MIT) avant de rendre le dépôt public ou de
-  publier sur npm.
+
+## Licence
+
+MIT, voir [`LICENSE`](LICENSE).

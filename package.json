@@ -2,6 +2,12 @@
 	"name": "robot-buddy",
 	"version": "0.1.0",
 	"description": "Petit robot animé en Canvas 2D : mascotte d'assistant, huit coques, toutes les couleurs, avec des composants Svelte 5.",
+	"license": "MIT",
+	"author": "Guillaume Archambault",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Gu1llaum-3/robot-buddy.git"
+	},
 	"private": true,
 	"type": "module",
 	"sideEffects": false,
