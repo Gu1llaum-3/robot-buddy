@@ -6,8 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `robot-buddy`: an animated assistant mascot drawn entirely in Canvas 2D (no images, no runtime
 dependencies, no network calls), packaged as a library with an optional Svelte 5 layer. The
-README (in French) is the user-facing documentation and is detailed; keep it in sync when the
-public API, shells, files or tests change.
+user-facing documentation is `README.md` (English) with a French translation in `README.fr.md`;
+keep both in sync when the public API, shells, files or tests change.
 
 ## Commands
 

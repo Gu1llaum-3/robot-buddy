@@ -1,98 +1,99 @@
 # Robot
 
-Petit robot animé qui sert de mascotte à un assistant. Il cligne des yeux, suit le curseur,
-change d'expression, réagit quand on le touche, s'endort quand personne ne clique, et se
-téléporte entre un emplacement de page et le coin bas droit de l'écran. Il existe en huit coques
-et dans n'importe quelle couleur.
+**English** · [Français](README.fr.md)
 
-Tout est dessiné en Canvas 2D : pas de bibliothèque, pas d'image, pas d'appel réseau. Le code
-n'importe rien d'autre que `svelte`, et seulement pour les composants : le moteur marche dans
-n'importe quelle page, avec ou sans framework.
+A small animated robot that serves as an assistant's mascot. It blinks, follows the cursor,
+changes expression, reacts when touched, falls asleep when nobody clicks, and teleports between a
+slot on the page and the bottom-right corner of the screen. It comes in eight shells and in any
+colour.
 
-Né dans le projet Comptoir (`toryo-agent`), d'où vient son historique. Démo jouable de toutes
-les expressions : [`demo/robot-demo.html`](demo/robot-demo.html), à ouvrir dans un navigateur.
+Everything is drawn in Canvas 2D: no library, no image, no network call. The code imports nothing
+but `svelte`, and only for the components: the engine works in any page, with or without a
+framework.
 
-## Sommaire
+Born in the Comptoir project (`toryo-agent`), where its history comes from. Playable demo of every
+expression: [`demo/robot-demo.html`](demo/robot-demo.html), to open in a browser.
 
-1. [Prérequis](#prérequis)
-2. [Installer](#installer)
-3. [Les fichiers](#les-fichiers)
-4. [Démarrage rapide](#démarrage-rapide)
-5. [Composants](#composants)
-6. [Le moteur sans Svelte](#le-moteur-sans-svelte)
-7. [Expressions et réactions](#expressions-et-réactions)
-8. [Coques et couleurs](#coques-et-couleurs)
-9. [Enregistrer l'apparence de chacun](#enregistrer-lapparence-de-chacun)
-10. [Personnaliser l'affichage (CSS)](#personnaliser-laffichage-css)
-11. [Accessibilité et mouvement réduit](#accessibilité-et-mouvement-réduit)
-12. [Ce que le projet d'accueil doit écrire](#ce-que-le-projet-daccueil-doit-écrire)
+## Contents
+
+1. [Prerequisites](#prerequisites)
+2. [Installing](#installing)
+3. [Files](#files)
+4. [Quick start](#quick-start)
+5. [Components](#components)
+6. [The engine without Svelte](#the-engine-without-svelte)
+7. [Expressions and reactions](#expressions-and-reactions)
+8. [Shells and colours](#shells-and-colours)
+9. [Saving each user's look](#saving-each-users-look)
+10. [Customising the display (CSS)](#customising-the-display-css)
+11. [Accessibility and reduced motion](#accessibility-and-reduced-motion)
+12. [What the host project must write](#what-the-host-project-must-write)
 13. [Tests](#tests)
-14. [Ajouter une coque](#ajouter-une-coque)
-15. [Limites connues](#limites-connues)
-16. [Développer le module](#développer-le-module)
+14. [Adding a shell](#adding-a-shell)
+15. [Known limitations](#known-limitations)
+16. [Developing the module](#developing-the-module)
 
-## Prérequis
+## Prerequisites
 
-| Besoin                                            | Pour quoi                                                          | Détail                                                                                                                                                            |
-| ------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Navigateur avec Canvas 2D                         | Tout                                                               | `roundRect`, `ResizeObserver`, `matchMedia` : tous les navigateurs récents                                                                                        |
-| TypeScript                                        | Tout                                                               | Le module est écrit en TypeScript                                                                                                                                 |
-| Imports en `.ts`                                  | Tout                                                               | Le module écrit `import … from './engine.ts'`. SvelteKit 3 l'accepte d'office ; sinon, ajouter `"allowImportingTsExtensions": true` (avec `noEmit`) au `tsconfig` |
-| Svelte 5 (runes)                                  | Les composants `.svelte` et `anchor.svelte.ts`                     | Inutile si l'on n'utilise que le moteur                                                                                                                           |
-| CSS `container-type` et `:has()`                  | Les « z » du sommeil et le sélecteur                               | Tous les navigateurs récents                                                                                                                                      |
-| Vitest                                            | Les tests `*.test.ts`                                              | Facultatif                                                                                                                                                        |
-| `vitest-browser-svelte` et Chromium de Playwright | Les tests `*.svelte.test.ts`, qui tournent dans un vrai navigateur | Facultatif ; `pnpm exec playwright install chromium`                                                                                                              |
+| Need                                            | For                                                       | Details                                                                                                                                                                   |
+| ----------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Browser with Canvas 2D                          | Everything                                                | `roundRect`, `ResizeObserver`, `matchMedia`: all recent browsers                                                                                                          |
+| TypeScript                                      | Everything                                                | The module is written in TypeScript                                                                                                                                       |
+| `.ts` imports                                   | Everything                                                | The module writes `import … from './engine.ts'`. SvelteKit 3 accepts it out of the box; otherwise, add `"allowImportingTsExtensions": true` (with `noEmit`) to `tsconfig` |
+| Svelte 5 (runes)                                | The `.svelte` components and `anchor.svelte.ts`           | Not needed if you only use the engine                                                                                                                                     |
+| CSS `container-type` and `:has()`               | The sleep z's and the picker                              | All recent browsers                                                                                                                                                       |
+| Vitest                                          | The `*.test.ts` tests                                     | Optional                                                                                                                                                                  |
+| `vitest-browser-svelte` and Playwright Chromium | The `*.svelte.test.ts` tests, which run in a real browser | Optional; `pnpm exec playwright install chromium`                                                                                                                         |
 
-Aucune dépendance npm n'est nécessaire pour faire tourner le robot.
+No npm dependency is needed to run the robot.
 
-## Installer
+## Installing
 
-Trois façons, de la plus simple à la plus suivie :
+Three ways, from the simplest to the most tracked:
 
-1. **Copier les sources** : le dossier `src/lib/` dans le projet (par exemple dans
-   `src/lib/robot-buddy/`), sans les fichiers `*.test.ts` si l'on ne garde pas les tests. On
-   importe alors les fichiers directement (`./robot-buddy/engine.ts`,
-   `./robot-buddy/RobotDock.svelte`).
-2. **Dépendance git** : `pnpm add github:Gu1llaum-3/robot-buddy` (ou `npm install`). Le script
-   `prepare` construit `dist/` à l'installation. Avec pnpm 10 ou plus, autoriser ce script :
-   `pnpm approve-builds`, ou `onlyBuiltDependencies: [robot-buddy]` dans `pnpm-workspace.yaml`.
-3. **Paquet npm** : pas encore publié (`"private": true` dans `package.json`).
+1. **Copy the sources**: the `src/lib/` folder into the project (for example into
+   `src/lib/robot-buddy/`), without the `*.test.ts` files if you don't keep the tests. You then
+   import the files directly (`./robot-buddy/engine.ts`, `./robot-buddy/RobotDock.svelte`).
+2. **Git dependency**: `pnpm add github:Gu1llaum-3/robot-buddy` (or `npm install`). The `prepare`
+   script builds `dist/` on install. With pnpm 10 or later, allow that script:
+   `pnpm approve-builds`, or `onlyBuiltDependencies: [robot-buddy]` in `pnpm-workspace.yaml`.
+3. **npm package**: not published yet (`"private": true` in `package.json`).
 
-Avec les façons 2 et 3, le paquet a deux points d'entrée :
+With ways 2 and 3, the package has two entry points:
 
 ```ts
-import { createRobot, SHELLS, normalizeLook } from 'robot-buddy'; // tout projet, sans framework
+import { createRobot, SHELLS, normalizeLook } from 'robot-buddy'; // any project, no framework
 import { RobotDock, RobotAnchor, Robot, RobotLookPicker } from 'robot-buddy/svelte'; // Svelte 5
 ```
 
-`robot-buddy/svelte` réexporte aussi tout `robot-buddy`. Svelte n'est qu'une dépendance
-facultative (`peerDependency`) : un projet sans Svelte utilise le premier point d'entrée seul.
+`robot-buddy/svelte` also re-exports all of `robot-buddy`. Svelte is only an optional dependency
+(`peerDependency`): a project without Svelte uses the first entry point alone.
 
-Ensuite : brancher le robot (voir [Démarrage rapide](#démarrage-rapide)), puis écrire ce qui
-dépend du projet (voir [Ce que le projet d'accueil doit écrire](#ce-que-le-projet-daccueil-doit-écrire)).
+Next: wire up the robot (see [Quick start](#quick-start)), then write what depends on the project
+(see [What the host project must write](#what-the-host-project-must-write)).
 
-## Les fichiers
+## Files
 
-| Fichier                  | Rôle                                                                      | Dépend de                          |
-| ------------------------ | ------------------------------------------------------------------------- | ---------------------------------- |
-| `engine.ts`              | Moteur : `createRobot(canvas, options)`, dessin, animation, interactions  | `mood.ts`, `looks.ts`              |
-| `mood.ts`                | Réactions (amour, antenne, sommeil) par-dessus l'expression demandée      | —                                  |
-| `looks.ts`               | Coques, couleurs proposées, `normalizeLook`, tons tirés d'une couleur     | —                                  |
-| `Robot.svelte`           | Le robot sur un canvas carré qui remplit son parent                       | `engine.ts`, `looks.ts`            |
-| `RobotDock.svelte`       | Une seule instance pour toute l'app : sur l'emplacement ou dans le coin   | `Robot.svelte`, `anchor.svelte.ts` |
-| `RobotAnchor.svelte`     | Emplacement réservé par une page, que le dock vient occuper               | `anchor.svelte.ts`                 |
-| `anchor.svelte.ts`       | État partagé entre `RobotAnchor` et `RobotDock`                           | —                                  |
-| `RobotLookPicker.svelte` | Choix de la coque et de la couleur, avec aperçu                           | `Robot.svelte`, `looks.ts`         |
-| `index.ts`               | Point d'entrée `robot-buddy` : moteur et catalogue                        | `engine.ts`, `looks.ts`            |
-| `svelte.ts`              | Point d'entrée `robot-buddy/svelte` : composants, plus tout `robot-buddy` | les composants                     |
+| File                     | Role                                                                     | Depends on                         |
+| ------------------------ | ------------------------------------------------------------------------ | ---------------------------------- |
+| `engine.ts`              | Engine: `createRobot(canvas, options)`, drawing, animation, interactions | `mood.ts`, `looks.ts`              |
+| `mood.ts`                | Reactions (love, antenna, sleep) on top of the requested expression      | —                                  |
+| `looks.ts`               | Shells, suggested colours, `normalizeLook`, tones drawn from a colour    | —                                  |
+| `Robot.svelte`           | The robot on a square canvas that fills its parent                       | `engine.ts`, `looks.ts`            |
+| `RobotDock.svelte`       | A single instance for the whole app: on the slot or in the corner        | `Robot.svelte`, `anchor.svelte.ts` |
+| `RobotAnchor.svelte`     | Slot reserved by a page, which the dock comes to occupy                  | `anchor.svelte.ts`                 |
+| `anchor.svelte.ts`       | State shared between `RobotAnchor` and `RobotDock`                       | —                                  |
+| `RobotLookPicker.svelte` | Shell and colour picker, with preview                                    | `Robot.svelte`, `looks.ts`         |
+| `index.ts`               | `robot-buddy` entry point: engine and catalogue                          | `engine.ts`, `looks.ts`            |
+| `svelte.ts`              | `robot-buddy/svelte` entry point: components, plus all of `robot-buddy`  | the components                     |
 
-Tous ces fichiers sont dans `src/lib/`. `engine.ts`, `mood.ts` et `looks.ts` ne dépendent ni de Svelte ni du DOM au chargement : on peut
-les utiliser seuls.
+All these files are in `src/lib/`. `engine.ts`, `mood.ts` and `looks.ts` depend neither on Svelte
+nor on the DOM at load time: they can be used on their own.
 
-## Démarrage rapide
+## Quick start
 
-**1. Une seule instance, dans un layout qui reste monté d'une page à l'autre.** Le robot garde
-ainsi son état (expression, ressorts, sommeil) pendant la navigation.
+**1. A single instance, in a layout that stays mounted from one page to the next.** The robot
+thus keeps its state (expression, springs, sleep) while navigating.
 
 ```svelte
 <script lang="ts">
@@ -105,10 +106,10 @@ ainsi son état (expression, ressorts, sommeil) pendant la navigation.
 </script>
 
 {@render children()}
-<RobotDock {where} label="Ouvrir l'assistant" onactivate={() => goto('/assistant')} />
+<RobotDock {where} label="Open the assistant" onactivate={() => goto('/assistant')} />
 ```
 
-**2. Dans la page où il doit se poser, réserver sa place.** La taille vient de la classe.
+**2. In the page where it should land, reserve its place.** The size comes from the class.
 
 ```svelte
 <script lang="ts">
@@ -125,77 +126,77 @@ ainsi son état (expression, ressorts, sommeil) pendant la navigation.
 </style>
 ```
 
-**3. Le faire réagir à l'application** (facultatif) : `emotion`, `look`, et `celebrate()` à la
-fin d'une tâche.
+**3. Make it react to the application** (optional): `emotion`, `look`, and `celebrate()` when a
+task finishes.
 
 ```svelte
 <RobotDock bind:this={dock} {where} emotion={busy ? 'focus' : 'neutral'} look={myLook} />
-<!-- plus tard : dock.celebrate() -->
+<!-- later: dock.celebrate() -->
 ```
 
-Sans emplacement à occuper (pas de `RobotAnchor`), on peut aussi poser un robot simple n'importe
-où avec `<Robot />` : il remplit son parent.
+With no slot to occupy (no `RobotAnchor`), you can also put a plain robot anywhere with
+`<Robot />`: it fills its parent.
 
-## Composants
+## Components
 
 ### `RobotDock`
 
-Le robot unique de l'application : position `fixed`, au-dessus du `RobotAnchor` de la page ou
-dans le coin bas droit, avec une téléportation à chaque changement de place.
+The application's single robot: `fixed` position, over the page's `RobotAnchor` or in the
+bottom-right corner, with a teleport every time it changes place.
 
-| Prop         | Type                               | Défaut       | Rôle                                                                |
-| ------------ | ---------------------------------- | ------------ | ------------------------------------------------------------------- |
-| `where`      | `'anchor' \| 'corner' \| 'hidden'` | obligatoire  | Sur l'emplacement de la page, dans le coin, ou caché                |
-| `emotion`    | `Emotion`                          | `'neutral'`  | Expression demandée (voir [Expressions](#expressions-et-réactions)) |
-| `look`       | `RobotLook`                        | galet menthe | Coque et couleur                                                    |
-| `label`      | `string`                           | `'Ouvrir'`   | Nom accessible du bouton du coin                                    |
-| `onactivate` | `() => void`                       | —            | Clic ou touche Entrée sur le robot du coin                          |
+| Prop         | Type                               | Default     | Role                                                                 |
+| ------------ | ---------------------------------- | ----------- | -------------------------------------------------------------------- |
+| `where`      | `'anchor' \| 'corner' \| 'hidden'` | required    | On the page's slot, in the corner, or hidden                         |
+| `emotion`    | `Emotion`                          | `'neutral'` | Requested expression (see [Expressions](#expressions-and-reactions)) |
+| `look`       | `RobotLook`                        | mint pebble | Shell and colour                                                     |
+| `label`      | `string`                           | `'Ouvrir'`  | Accessible name of the corner button                                 |
+| `onactivate` | `() => void`                       | —           | Click or Enter key on the corner robot                               |
 
-Méthode, via `bind:this` : `celebrate()`.
+Method, through `bind:this`: `celebrate()`.
 
-- Tant que `where` vaut `'anchor'` mais que la page n'a pas encore monté son `RobotAnchor`, le
-  robot reste où il est.
-- Sur l'emplacement, il suit sa position et sa taille à chaque image, pour accompagner une page
-  qui se réorganise (un champ qui grandit, un redimensionnement).
-- Entre deux emplacements de taille différente, il glisse au lieu de se téléporter.
-- Dans le coin, le robot est un bouton : on le survole, il cligne et suit le regard, et un clic
-  appelle `onactivate`. Sur l'emplacement, il réagit aux tapes.
+- While `where` is `'anchor'` but the page has not mounted its `RobotAnchor` yet, the robot stays
+  where it is.
+- On the slot, it follows the slot's position and size every frame, to keep up with a page that
+  rearranges itself (a growing field, a resize).
+- Between two slots of different sizes, it glides instead of teleporting.
+- In the corner, the robot is a button: hover it, it blinks and follows your gaze, and a click
+  calls `onactivate`. On the slot, it reacts to taps.
 
 ### `RobotAnchor`
 
-| Prop    | Type     | Rôle                                                         |
-| ------- | -------- | ------------------------------------------------------------ |
-| `class` | `string` | Classe qui donne la taille (et la position) de l'emplacement |
+| Prop    | Type     | Role                                              |
+| ------- | -------- | ------------------------------------------------- |
+| `class` | `string` | Class that gives the slot its size (and position) |
 
-Un seul `RobotAnchor` affiché à la fois : le dernier monté l'emporte.
+Only one `RobotAnchor` shown at a time: the last one mounted wins.
 
 ### `Robot`
 
-Le robot seul, sur un canvas carré qui remplit son parent (donner une taille au parent).
+The robot alone, on a square canvas that fills its parent (give the parent a size).
 
-| Prop          | Type          | Défaut                | Rôle                                                                   |
-| ------------- | ------------- | --------------------- | ---------------------------------------------------------------------- |
-| `emotion`     | `Emotion`     | `'neutral'`           | Expression demandée                                                    |
-| `look`        | `RobotLook`   | galet menthe          | Coque et couleur ; change en direct                                    |
-| `interactive` | `boolean`     | `true`                | Réagit aux tapes (chatouille, tête qui tourne, antenne)                |
-| `sleepAfter`  | `number` (ms) | `60000`               | Inactivité avant le sommeil ; `Infinity` le garde éveillé              |
-| `label`       | `string`      | `'Petit robot animé'` | Texte alternatif de l'image                                            |
-| `decorative`  | `boolean`     | `false`               | Masqué aux lecteurs d'écran (quand un bouton par-dessus le nomme déjà) |
-| `children`    | snippet       | —                     | Contenu posé par-dessus, qui partage le survol (par exemple un bouton) |
+| Prop          | Type          | Default               | Role                                                               |
+| ------------- | ------------- | --------------------- | ------------------------------------------------------------------ |
+| `emotion`     | `Emotion`     | `'neutral'`           | Requested expression                                               |
+| `look`        | `RobotLook`   | mint pebble           | Shell and colour; changes live                                     |
+| `interactive` | `boolean`     | `true`                | Reacts to taps (tickle, dizziness, antenna)                        |
+| `sleepAfter`  | `number` (ms) | `60000`               | Inactivity before sleep; `Infinity` keeps it awake                 |
+| `label`       | `string`      | `'Petit robot animé'` | Alternative text of the image                                      |
+| `decorative`  | `boolean`     | `false`               | Hidden from screen readers (when a button on top already names it) |
+| `children`    | snippet       | —                     | Content laid on top, which shares the hover (for example a button) |
 
-Méthode, via `bind:this` : `celebrate()`.
+Method, through `bind:this`: `celebrate()`.
 
 ### `RobotLookPicker`
 
-Le choix de la coque et de la couleur : un aperçu animé, les huit coques en vignettes (chacune
-dans sa couleur), les neuf teintes et une couleur libre. Choisir une coque la prend dans sa
-couleur, puis on la recolore.
+The shell and colour picker: an animated preview, the eight shells as thumbnails (each in its own
+colour), the nine tints and a free colour. Picking a shell takes it in its own colour; you then
+recolour it.
 
 ```svelte
 <script lang="ts">
 	import { DEFAULT_LOOK, RobotLookPicker, sameLook } from 'robot-buddy/svelte';
 
-	let { saved } = $props(); // l'apparence enregistrée
+	let { saved } = $props(); // the saved look
 	let look = $state({ ...saved });
 </script>
 
@@ -203,226 +204,222 @@ couleur, puis on la recolore.
 	<RobotLookPicker bind:look />
 	<input type="hidden" name="shell" value={look.shell} />
 	<input type="hidden" name="color" value={look.color} />
-	<button disabled={sameLook(look, saved)}>Enregistrer</button>
-	<button type="button" onclick={() => (look = { ...DEFAULT_LOOK })}>Par défaut</button>
+	<button disabled={sameLook(look, saved)}>Save</button>
+	<button type="button" onclick={() => (look = { ...DEFAULT_LOOK })}>Default</button>
 </form>
 ```
 
-Le sélecteur ne sauvegarde rien : c'est au projet de le faire (voir
-[Enregistrer l'apparence](#enregistrer-lapparence-de-chacun)). L'aperçu et les vignettes ne
-s'endorment pas.
+The picker saves nothing: that is the project's job (see
+[Saving each user's look](#saving-each-users-look)). The preview and thumbnails never fall
+asleep.
 
-## Le moteur sans Svelte
+## The engine without Svelte
 
 ```ts
 import { createRobot } from 'robot-buddy';
 
-const canvas = document.querySelector('canvas')!; // carré, taillé en CSS
+const canvas = document.querySelector('canvas')!; // square, sized in CSS
 const robot = createRobot(canvas, {
 	look: { shell: 'crt', color: '#f2d47e' },
 	onemotion: (e) => console.log('expression', e)
 });
 robot.set('focus');
 robot.celebrate();
-robot.destroy(); // arrête l'animation et retire tous les écouteurs
+robot.destroy(); // stops the animation and removes every listener
 ```
 
-**Options de `createRobot(canvas, options)`**
+**`createRobot(canvas, options)` options**
 
-| Option        | Type                   | Défaut       | Rôle                                                                                        |
-| ------------- | ---------------------- | ------------ | ------------------------------------------------------------------------------------------- |
-| `look`        | `RobotLook`            | galet menthe | Coque et couleur de départ                                                                  |
-| `interactive` | `boolean`              | `true`       | Réagit aux tapes                                                                            |
-| `target`      | `HTMLElement`          | le canvas    | Élément dont le survol et les tapes comptent (utile si un bouton recouvre le canvas)        |
-| `sleepAfter`  | `number` (ms)          | `60000`      | Inactivité avant le sommeil ; `Infinity` le garde éveillé                                   |
-| `sleepZs`     | `boolean`              | `true`       | Dessiner les « z » du sommeil sur le canvas (`Robot.svelte` les affiche en HTML à la place) |
-| `onemotion`   | `(e: Emotion) => void` | —            | Appelée à chaque changement d'expression, réactions comprises                               |
+| Option        | Type                   | Default     | Role                                                                         |
+| ------------- | ---------------------- | ----------- | ---------------------------------------------------------------------------- |
+| `look`        | `RobotLook`            | mint pebble | Starting shell and colour                                                    |
+| `interactive` | `boolean`              | `true`      | Reacts to taps                                                               |
+| `target`      | `HTMLElement`          | the canvas  | Element whose hover and taps count (useful when a button covers the canvas)  |
+| `sleepAfter`  | `number` (ms)          | `60000`     | Inactivity before sleep; `Infinity` keeps it awake                           |
+| `sleepZs`     | `boolean`              | `true`      | Draw the sleep z's on the canvas (`Robot.svelte` shows them in HTML instead) |
+| `onemotion`   | `(e: Emotion) => void` | —           | Called on every expression change, reactions included                        |
 
-**Méthodes du robot renvoyé**
+**Methods of the returned robot**
 
-| Méthode              | Rôle                                                                                       |
-| -------------------- | ------------------------------------------------------------------------------------------ |
-| `set(emotion)`       | Change l'expression demandée                                                               |
-| `celebrate()`        | Saut de joie, étincelles, puis expression `happy`                                          |
-| `blink(side?)`       | Cligne (`'both'`, `'left'` ou `'right'`)                                                   |
-| `setLook(look)`      | Change la coque et la couleur en direct                                                    |
-| `setInteractive(on)` | Active ou coupe les réactions aux tapes                                                    |
-| `emotion`            | Expression affichée (lecture seule)                                                        |
-| `destroy()`          | Arrête la boucle d'animation et retire les écouteurs ; à appeler quand le canvas disparaît |
+| Method               | Role                                                                                  |
+| -------------------- | ------------------------------------------------------------------------------------- |
+| `set(emotion)`       | Changes the requested expression                                                      |
+| `celebrate()`        | Jump for joy, sparkles, then the `happy` expression                                   |
+| `blink(side?)`       | Blinks (`'both'`, `'left'` or `'right'`)                                              |
+| `setLook(look)`      | Changes the shell and colour live                                                     |
+| `setInteractive(on)` | Turns reactions to taps on or off                                                     |
+| `emotion`            | Expression shown (read-only)                                                          |
+| `destroy()`          | Stops the animation loop and removes the listeners; call it when the canvas goes away |
 
-La taille de dessin suit la taille CSS du canvas et la densité de l'écran (jusqu'à 2,5×).
+The drawing size follows the canvas's CSS size and the screen density (up to 2.5×).
 
-## Expressions et réactions
+## Expressions and reactions
 
-**Expressions** (`Emotion`) : `neutral`, `happy`, `love`, `curious`, `surprised`, `worried`, `sad`,
-`angry`, `suspicious`, `tired`, `sleep`, `focus`. `focus` fait défiler une pluie de chiffres dans
-les yeux : c'est l'expression « je réfléchis ».
+**Expressions** (`Emotion`): `neutral`, `happy`, `love`, `curious`, `surprised`, `worried`, `sad`,
+`angry`, `suspicious`, `tired`, `sleep`, `focus`. `focus` scrolls a rain of digits through the
+eyes: it is the "I'm thinking" expression.
 
-**Réactions du robot lui-même** (`mood.ts`). Elles passent par-dessus l'expression demandée, puis
-la rendent :
+**The robot's own reactions** (`mood.ts`). They take over the requested expression, then hand it
+back:
 
-| Geste                                                            | Réaction                                           |
-| ---------------------------------------------------------------- | -------------------------------------------------- |
-| Survol prolongé (1,2 s)                                          | Amoureux (yeux en cœur) tant que le curseur reste  |
-| Clic sur le haut de la coque (antenne, oreilles, haut du nuage…) | Surpris ou curieux, au hasard, pendant 1,8 s       |
-| Tape sur le robot (`interactive`)                                | Chatouille ; trois tapes rapides : tête qui tourne |
-| Une minute sans clic ni touche sur la page                       | Il s'endort, même si la souris bouge               |
-| Clic ou touche pendant qu'il dort                                | Réveil, surpris, pendant 1,5 s                     |
+| Gesture                                                          | Reaction                                         |
+| ---------------------------------------------------------------- | ------------------------------------------------ |
+| Long hover (1.2 s)                                               | In love (heart eyes) as long as the cursor stays |
+| Click on the top of the shell (antenna, ears, top of the cloud…) | Surprised or curious, at random, for 1.8 s       |
+| Tap on the robot (`interactive`)                                 | Tickle; three quick taps: dizzy                  |
+| One minute without a click or key on the page                    | Falls asleep, even if the mouse moves            |
+| Click or key while asleep                                        | Wakes up, surprised, for 1.5 s                   |
 
-Une nouvelle expression demandée (`set`, prop `emotion`) met fin à toute réaction, sommeil
-compris. Il ne s'endort pas et ne devient pas amoureux pendant `focus`, `angry`, `suspicious` ou
-`sleep`.
+A newly requested expression (`set`, `emotion` prop) ends any reaction, sleep included. It does
+not fall asleep or fall in love during `focus`, `angry`, `suspicious` or `sleep`.
 
-## Coques et couleurs
+## Shells and colours
 
-| Identifiant  | Nom                | Couleur conseillée | Le haut cliquable                 |
-| ------------ | ------------------ | ------------------ | --------------------------------- |
-| `pebble`     | Galet (par défaut) | Menthe `#a3d6c1`   | L'antenne à boule                 |
-| `crt`        | Télé rétro         | Beurre `#f2d47e`   | Les antennes en oreilles de lapin |
-| `egg`        | Pocket             | Orange `#ff9447`   | L'anneau de porte-clés            |
-| `helmet`     | Astronaute         | Nacre `#dfe4ea`    | La balise                         |
-| `cat`        | Chaton             | Rose `#f5b0cc`     | Les oreilles                      |
-| `headphones` | Casque audio       | Lavande `#c4b5f2`  | L'antenne à boule                 |
-| `cloud`      | Nuage              | Ciel `#9ccbf0`     | Le haut du nuage                  |
-| `pixel`      | Pixel              | Corail `#f4a593`   | L'antenne en blocs                |
+| Id           | Name (`name`)             | Suggested colour             | Clickable top           |
+| ------------ | ------------------------- | ---------------------------- | ----------------------- |
+| `pebble`     | Galet — pebble (default)  | Menthe (mint) `#a3d6c1`      | The ball antenna        |
+| `crt`        | Télé rétro — retro TV     | Beurre (butter) `#f2d47e`    | The rabbit-ear antennas |
+| `egg`        | Pocket                    | Orange `#ff9447`             | The keyring loop        |
+| `helmet`     | Astronaute — astronaut    | Nacre (pearl) `#dfe4ea`      | The beacon              |
+| `cat`        | Chaton — kitten           | Rose (pink) `#f5b0cc`        | The ears                |
+| `headphones` | Casque audio — headphones | Lavande (lavender) `#c4b5f2` | The ball antenna        |
+| `cloud`      | Nuage — cloud             | Ciel (sky) `#9ccbf0`         | The top of the cloud    |
+| `pixel`      | Pixel                     | Corail (coral) `#f4a593`     | The block antenna       |
 
-Les yeux, les expressions, le sommeil et la téléportation sont les mêmes pour toutes les coques.
+The eyes, expressions, sleep and teleport are the same for every shell.
 
-**Couleurs.** `ROBOT_COLORS` propose neuf teintes : Menthe, Ciel, Lavande, Rose, Corail, Orange,
-Beurre, Nacre, Graphite. N'importe quelle couleur `#rrggbb` convient : le clair, l'ombre et le
-contour en sont tirés (`shellPalette`). Les teintes douces gardent les yeux lisibles ; une couleur
-très sombre fonctionne, mais l'écran se distingue moins de la coque.
+**Colours.** `ROBOT_COLORS` offers nine tints: Menthe (mint), Ciel (sky), Lavande (lavender),
+Rose (pink), Corail (coral), Orange, Beurre (butter), Nacre (pearl), Graphite. Any `#rrggbb` colour
+works: the light, shade and outline are drawn from it (`shellPalette`). Soft tints keep the eyes
+readable; a very dark colour works, but the screen stands out less from the shell.
 
-**`looks.ts` exporte**
+**`looks.ts` exports**
 
-| Export                     | Rôle                                                                        |
-| -------------------------- | --------------------------------------------------------------------------- |
-| `SHELLS`                   | Les coques : `{ id, name, color }`                                          |
-| `ROBOT_COLORS`             | Les teintes proposées : `{ name, hex }`                                     |
-| `ShellId`, `RobotLook`     | Types : `RobotLook = { shell: ShellId; color: string }`                     |
-| `DEFAULT_LOOK`             | Le galet menthe                                                             |
-| `normalizeLook(valeur)`    | Apparence sûre à partir d'une valeur enregistrée ou reçue (voir ci-dessous) |
-| `suggestedColor(shell)`    | Couleur conseillée d'une coque                                              |
-| `sameLook(a, b)`           | Même coque et même couleur, sans tenir compte de la casse                   |
-| `isShell(v)`, `isColor(v)` | Gardes : coque connue, couleur `#rrggbb`                                    |
-| `shellPalette(color)`      | Tons `light`, `mid`, `edge`, `deep` tirés d'une couleur                     |
+| Export                     | Role                                                     |
+| -------------------------- | -------------------------------------------------------- |
+| `SHELLS`                   | The shells: `{ id, name, color }`                        |
+| `ROBOT_COLORS`             | The suggested tints: `{ name, hex }`                     |
+| `ShellId`, `RobotLook`     | Types: `RobotLook = { shell: ShellId; color: string }`   |
+| `DEFAULT_LOOK`             | The mint pebble                                          |
+| `normalizeLook(value)`     | Safe look from a saved or received value (see below)     |
+| `suggestedColor(shell)`    | A shell's suggested colour                               |
+| `sameLook(a, b)`           | Same shell and same colour, ignoring case                |
+| `isShell(v)`, `isColor(v)` | Guards: known shell, `#rrggbb` colour                    |
+| `shellPalette(color)`      | `light`, `mid`, `edge`, `deep` tones drawn from a colour |
 
-`normalizeLook` garde ce qui est valable : une coque inconnue devient le galet, une couleur
-invalide devient la couleur conseillée de la coque, et `null` donne le galet menthe.
+`normalizeLook` keeps what is valid: an unknown shell becomes the pebble, an invalid colour
+becomes the shell's suggested colour, and `null` gives the mint pebble.
 
-## Enregistrer l'apparence de chacun
+## Saving each user's look
 
-Le module ne stocke rien. Il suffit de garder deux chaînes, la coque et la couleur, où l'on veut
-(base de données, préférences, `localStorage`).
+The module stores nothing. Keeping two strings, the shell and the colour, wherever you like
+(database, preferences, `localStorage`) is enough.
 
-- **En lisant**, passer la valeur par `normalizeLook()` avant de la donner au robot : une valeur
-  ancienne, vide ou trafiquée devient une apparence valide.
-- **En écrivant**, refuser ce qui n'est pas valable avec `isShell()` et `isColor()`, côté serveur.
-- **« Par défaut »** : on peut enregistrer « aucun choix » (valeurs vides) plutôt que le galet
-  menthe. Ces comptes suivront ainsi le défaut s'il change un jour.
-- **Ne jamais renommer** un identifiant de coque : il est enregistré tel quel.
+- **When reading**, pass the value through `normalizeLook()` before giving it to the robot: an
+  old, empty or tampered value becomes a valid look.
+- **When writing**, reject what is not valid with `isShell()` and `isColor()`, on the server.
+- **"Default"**: you can save "no choice" (empty values) rather than the mint pebble. Those
+  accounts will then follow the default if it ever changes.
+- **Never rename** a shell id: it is stored as is.
 
-Dans Comptoir, par exemple : deux colonnes facultatives `robot_shell` et `robot_color` sur `user`,
-`src/lib/server/robot-look.ts` (`robotLookOf`, `saveRobotLook`), et la carte « Apparence du
-robot » de `src/routes/(app)/profile/`.
+In Comptoir, for example: two optional columns `robot_shell` and `robot_color` on `user`,
+`src/lib/server/robot-look.ts` (`robotLookOf`, `saveRobotLook`), and the "Robot appearance" card
+in `src/routes/(app)/profile/`.
 
-## Personnaliser l'affichage (CSS)
+## Customising the display (CSS)
 
-Variables CSS facultatives, à poser sur `:root` ou sur un parent du dock :
+Optional CSS variables, to set on `:root` or on a parent of the dock:
 
-| Variable                     | Défaut         | Rôle                                                                 |
-| ---------------------------- | -------------- | -------------------------------------------------------------------- |
-| `--robot-corner-size`        | `72px`         | Taille du robot dans le coin                                         |
-| `--robot-corner-size-narrow` | `48px`         | Taille dans le coin sous 760 px de large                             |
-| `--robot-z`                  | `15`           | `z-index` du dock : au-dessus de la page, sous ses menus et panneaux |
-| `--robot-focus`              | `currentColor` | Anneau de focus du bouton du coin                                    |
-| `--robot-glow`               | vert menthe    | Lueur de la téléportation                                            |
+| Variable                     | Default        | Role                                                       |
+| ---------------------------- | -------------- | ---------------------------------------------------------- |
+| `--robot-corner-size`        | `72px`         | Size of the robot in the corner                            |
+| `--robot-corner-size-narrow` | `48px`         | Size in the corner below 760 px wide                       |
+| `--robot-z`                  | `15`           | Dock `z-index`: above the page, below its menus and panels |
+| `--robot-focus`              | `currentColor` | Focus ring of the corner button                            |
+| `--robot-glow`               | mint green     | Teleport glow                                              |
 
-Le composant utilise aussi, s'ils existent, les jetons `--text`, `--text-2`, `--border`,
-`--panel`, `--hover` et `--accent` du projet (sélecteur), avec des valeurs de repli.
+The component also uses the project's `--text`, `--text-2`, `--border`, `--panel`, `--hover` and
+`--accent` tokens when they exist (picker), with fallback values.
 
-## Accessibilité et mouvement réduit
+## Accessibility and reduced motion
 
-- Le robot est une image nommée (`label`). Dans le coin, c'est un vrai bouton nommé (`label`),
-  atteignable au clavier, avec un anneau de focus.
-- Avec `prefers-reduced-motion`, il ne se téléporte pas (il change simplement de place), ne
-  respire plus, ne cligne plus et ne regarde plus autour de lui de lui-même, ne sautille plus
-  quand il est content, n'émet ni étincelles ni cœurs, la pluie de chiffres de `focus` s'arrête,
-  et ses « z » restent immobiles. Les petits sursauts (surprise, fête) et le suivi du curseur
-  restent.
-- Le sélecteur utilise de vrais boutons radio (coques, teintes) et un champ couleur natif.
+- The robot is a named image (`label`). In the corner, it is a real named button (`label`),
+  reachable by keyboard, with a focus ring.
+- With `prefers-reduced-motion`, it does not teleport (it simply changes place), stops breathing,
+  stops blinking and looking around on its own, no longer hops when happy, emits neither sparkles
+  nor hearts, the `focus` digit rain stops, and its z's stay still. The small jolts (surprise,
+  celebration) and cursor tracking remain.
+- The picker uses real radio buttons (shells, tints) and a native colour input.
 
-## Ce que le projet d'accueil doit écrire
+## What the host project must write
 
-Le module ne connaît ni les routes, ni l'application, ni la base. Ces parties s'écrivent dans
-chaque projet. Pour exemple, voici où elles sont dans le projet d'origine (Comptoir,
-`toryo-agent`) :
+The module knows nothing of routes, the application or the database. Those parts are written in
+each project. As an example, here is where they live in the original project (Comptoir,
+`toryo-agent`):
 
-| Quoi                  | Dans Comptoir                                                  | Rôle                                                                                |
-| --------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Placement             | `src/lib/ui/robot.ts` (`robotPlacement`)                       | Pour chaque page : sur l'emplacement (grand ou réduit), dans le coin, ou caché      |
-| Humeur                | `src/lib/ui/robot.ts` (`robotMood`)                            | L'état de l'application devient une expression (réfléchit, content, surpris)        |
-| Fête                  | `src/routes/(app)/+layout.svelte`                              | Appel de `celebrate()` quand une tâche aboutit                                      |
-| Emplacements          | `src/routes/(app)/agent/+page.svelte`, `src/routes/layout.css` | `RobotAnchor` de l'accueil (150 px) et de la conversation (124 px, à côté du champ) |
-| Apparence enregistrée | `src/lib/server/robot-look.ts`, `src/routes/(app)/profile/`    | Lecture, écriture et écran de choix                                                 |
+| What        | In Comptoir                                                    | Role                                                                                |
+| ----------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Placement   | `src/lib/ui/robot.ts` (`robotPlacement`)                       | For each page: on the slot (large or small), in the corner, or hidden               |
+| Mood        | `src/lib/ui/robot.ts` (`robotMood`)                            | The application state becomes an expression (thinking, happy, surprised)            |
+| Celebration | `src/routes/(app)/+layout.svelte`                              | Calls `celebrate()` when a task succeeds                                            |
+| Slots       | `src/routes/(app)/agent/+page.svelte`, `src/routes/layout.css` | `RobotAnchor` on the home page (150 px) and in the chat (124 px, next to the input) |
+| Saved look  | `src/lib/server/robot-look.ts`, `src/routes/(app)/profile/`    | Reading, writing and the picker screen                                              |
 
 ## Tests
 
-| Fichier                          | Où il tourne | Ce qu'il vérifie                                                                         |
-| -------------------------------- | ------------ | ---------------------------------------------------------------------------------------- |
-| `looks.test.ts`                  | Node         | Catalogue, `normalizeLook`, `sameLook`, tons                                             |
-| `mood.test.ts`                   | Node         | Amour, antenne, sommeil, réveil                                                          |
-| `engine.svelte.test.ts`          | Navigateur   | Pour chaque coque : yeux entiers (même « surpris »), couleur appliquée, clic sur le haut |
-| `Robot.svelte.test.ts`           | Navigateur   | Retour au galet menthe quand `look` disparaît                                            |
-| `RobotLookPicker.svelte.test.ts` | Navigateur   | Une coque se choisit dans sa couleur                                                     |
+| File                             | Runs in | What it checks                                                                  |
+| -------------------------------- | ------- | ------------------------------------------------------------------------------- |
+| `looks.test.ts`                  | Node    | Catalogue, `normalizeLook`, `sameLook`, tones                                   |
+| `mood.test.ts`                   | Node    | Love, antenna, sleep, wake-up                                                   |
+| `engine.svelte.test.ts`          | Browser | For each shell: whole eyes (even "surprised"), colour applied, click on the top |
+| `Robot.svelte.test.ts`           | Browser | Back to the mint pebble when `look` goes away                                   |
+| `RobotLookPicker.svelte.test.ts` | Browser | A shell is picked in its own colour                                             |
 
-Les tests « navigateur » demandent le mode navigateur de Vitest (`vitest-browser-svelte`, provider
-Playwright). Ici : `pnpm test` (voir [Développer le module](#développer-le-module)).
+The browser tests need Vitest's browser mode (`vitest-browser-svelte`, Playwright provider).
+Here: `pnpm test` (see [Developing the module](#developing-the-module)).
 
-## Ajouter une coque
+## Adding a shell
 
-1. `src/lib/looks.ts` : ajouter `{ id, name, color }` à `SHELLS` (un identifiant nouveau, jamais
-   réutilisé).
-2. `src/lib/engine.ts` : ajouter son entrée à `SHELL_DRAWINGS`. Seuls `body`, `screen` et `top` sont
-   obligatoires :
-   - `body` : la silhouette ;
-   - `screen` : le contour de l'écran, assez grand pour les yeux (environ x 62 à 238, y 110 à
-     206 dans le dessin de 300 × 300) ;
-   - `back`, `details`, `front` : ce qui va derrière la coque, dessus, et par-dessus l'écran ;
-   - `antenna` : ce qui bouge avec le ressort ;
-   - `top` : la zone de clic qui fait sursauter ;
-   - `flat` : aplat avec contour épais au lieu du dégradé.
-3. Les tests `engine.svelte.test.ts` couvrent automatiquement la nouvelle coque, sauf la zone de
-   clic : ajouter un point dans `TOP`.
+1. `src/lib/looks.ts`: add `{ id, name, color }` to `SHELLS` (a new id, never reused).
+2. `src/lib/engine.ts`: add its entry to `SHELL_DRAWINGS`. Only `body`, `screen` and `top` are
+   required:
+   - `body`: the silhouette;
+   - `screen`: the screen outline, large enough for the eyes (roughly x 62 to 238, y 110 to 206
+     in the 300 × 300 drawing);
+   - `back`, `details`, `front`: what goes behind the shell, on it, and over the screen;
+   - `antenna`: what moves with the spring;
+   - `top`: the click area that makes it jump;
+   - `flat`: flat fill with a thick outline instead of the gradient.
+3. The `engine.svelte.test.ts` tests cover the new shell automatically, except the click area:
+   add a point to `TOP`.
 
-## Limites connues
+## Known limitations
 
-- **Une seule instance de `RobotDock`** par application, et un seul `RobotAnchor` affiché à la
-  fois (état partagé dans `anchor.svelte.ts`).
-- **Textes en français** dans le module : noms des coques et des teintes (`looks.ts`), textes
-  par défaut de `Robot.svelte` et du sélecteur. Pour une autre langue, les traduire à ces
-  endroits.
-- **Avertissement en développement** : au chargement d'une page qui contient le sélecteur, la
-  console peut afficher « The specified value "" does not conform… valid CSS color ». Il vient de
-  Svelte, qui vide un instant le champ couleur à l'hydratation ; la valeur est bien remise.
-- **Rendu côté serveur** : le canvas ne se dessine que dans le navigateur. Au premier affichage
-  rendu par le serveur, l'emplacement est vide jusqu'au chargement du script.
+- **A single `RobotDock` instance** per application, and a single `RobotAnchor` shown at a time
+  (state shared in `anchor.svelte.ts`).
+- **French text** in the module: shell and tint names (`looks.ts`), default texts of
+  `Robot.svelte` and of the picker. For another language, translate them in those places.
+- **Development warning**: when loading a page that contains the picker, the console may show
+  "The specified value "" does not conform… valid CSS color". It comes from Svelte, which briefly
+  empties the colour input on hydration; the value is restored.
+- **Server-side rendering**: the canvas only draws in the browser. On the first server-rendered
+  display, the slot is empty until the script loads.
 
-## Développer le module
+## Developing the module
 
 ```sh
-pnpm install                          # outils de développement, et construit dist/
-pnpm exec playwright install chromium # une fois, pour les tests navigateur
+pnpm install                          # development tools, and builds dist/
+pnpm exec playwright install chromium # once, for the browser tests
 pnpm check                            # types (svelte-check)
-pnpm test                             # tests Node et navigateur
-pnpm build                            # paquet dans dist/ (svelte-package)
-pnpm lint                             # mise en forme (Prettier)
+pnpm test                             # Node and browser tests
+pnpm build                            # package into dist/ (svelte-package)
+pnpm lint                             # formatting (Prettier)
 ```
 
-- Sources dans `src/lib/`, paquet construit dans `dist/` (ignoré par git). Les imports en `.ts`
-  des sources deviennent des `.js` dans `dist/`.
-- Messages de commit en anglais (conventional commits), comme dans le projet d'origine.
+- Sources in `src/lib/`, package built into `dist/` (ignored by git). The sources' `.ts` imports
+  become `.js` in `dist/`.
+- Commit messages in English (conventional commits), as in the original project.
 
 ## Licence
 
-MIT, voir [`LICENSE`](LICENSE).
+MIT, see [`LICENSE`](LICENSE).
