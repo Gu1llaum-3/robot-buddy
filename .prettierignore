@@ -1,0 +1,4 @@
+dist
+pnpm-lock.yaml
+# Original playable demo, kept as is
+demo/robot-demo.html

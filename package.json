@@ -1,0 +1,54 @@
+{
+	"name": "robot-buddy",
+	"version": "0.1.0",
+	"description": "Petit robot animé en Canvas 2D : mascotte d'assistant, huit coques, toutes les couleurs, avec des composants Svelte 5.",
+	"private": true,
+	"type": "module",
+	"sideEffects": false,
+	"files": [
+		"dist",
+		"!dist/**/*.test.*"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./svelte": {
+			"types": "./dist/svelte.d.ts",
+			"svelte": "./dist/svelte.js",
+			"default": "./dist/svelte.js"
+		}
+	},
+	"scripts": {
+		"build": "svelte-package -o dist",
+		"prepare": "svelte-package -o dist",
+		"check": "svelte-check --tsconfig ./tsconfig.json",
+		"test": "vitest --run",
+		"test:watch": "vitest",
+		"format": "prettier --write .",
+		"lint": "prettier --check ."
+	},
+	"peerDependencies": {
+		"svelte": "^5.0.0"
+	},
+	"peerDependenciesMeta": {
+		"svelte": {
+			"optional": true
+		}
+	},
+	"devDependencies": {
+		"@sveltejs/package": "^3.0.1",
+		"@sveltejs/vite-plugin-svelte": "^7.3.1",
+		"@vitest/browser-playwright": "^4.1.11",
+		"playwright": "^1.64.1",
+		"prettier": "^3.9.10",
+		"prettier-plugin-svelte": "^4.1.1",
+		"svelte": "^5.57.2",
+		"svelte-check": "^4.7.6",
+		"typescript": "^6.0.3",
+		"vite": "^8.3.4",
+		"vitest": "^4.1.11",
+		"vitest-browser-svelte": "^2.2.1"
+	}
+}
