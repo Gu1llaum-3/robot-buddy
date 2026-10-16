@@ -7,7 +7,7 @@
 <script lang="ts">
 	import { onMount, type Snippet } from 'svelte';
 	import { createRobot, type Emotion, type Robot } from './engine.ts';
-	import type { RobotLook } from './looks.ts';
+	import { DEFAULT_LOOK, type RobotLook } from './looks.ts';
 
 	type Props = {
 		emotion?: Emotion;
@@ -46,9 +46,8 @@
 		return () => robot?.destroy();
 	});
 	$effect(() => robot?.set(emotion));
-	$effect(() => {
-		if (look) robot?.setLook({ shell: look.shell, color: look.color });
-	});
+	// Without a look, back to the mint pebble
+	$effect(() => robot?.setLook(look ?? DEFAULT_LOOK));
 	$effect(() => robot?.setInteractive(interactive));
 
 	export function celebrate() {
