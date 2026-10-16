@@ -27,6 +27,10 @@ export type RobotOptions = {
 	target?: HTMLElement;
 	/** Inactivity (no click, no key on the page) before he falls asleep, in ms; 60 s by default. */
 	sleepAfter?: number;
+	/** Draw the sleep z's on the canvas (true by default); off when the host draws its own. */
+	sleepZs?: boolean;
+	/** Called whenever his expression changes, reactions included. */
+	onemotion?: (emotion: Emotion) => void;
 };
 
 export type Robot = {
@@ -347,6 +351,7 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 	function switchEmotion(name: Emotion) {
 		const now = performance.now();
 		emotion = name;
+		options.onemotion?.(name);
 		reactUntil = 0;
 		dizzyUntil = 0;
 		setEyeTargets(EXPRESSIONS[name].eyes);
@@ -697,16 +702,27 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 
 	function drawParticles(now: number) {
 		// Sleep z's, rising from above the head
-		if (emotion === 'sleep' && now >= nextZ) {
+		if (emotion === 'sleep' && options.sleepZs !== false && now >= nextZ) {
 			zs.push(now);
 			nextZ = now + 1400;
 		}
 		zs = zs.filter((t) => now - t < 2800);
+		// On a small robot (the corner) the z's grow more, so they stay readable on screen
+		const zScale = clamp(150 / (canvas.clientWidth || 150), 1, 1.5);
+		ctx.lineJoin = 'round';
 		for (const born of zs) {
 			const p = (now - born) / 2800;
-			ctx.font = `700 ${11 + p * 12}px Inter, ui-sans-serif, sans-serif`;
-			ctx.fillStyle = `rgba(110,135,145,${Math.sin(p * Math.PI) * 0.8})`;
-			ctx.fillText('z', 214 + p * 30 + Math.sin(p * 7) * 4, 82 - p * 56);
+			const size = (18 + p * 16) * zScale;
+			const alpha = Math.sin(p * Math.PI);
+			const x = 200 + p * 34 + Math.sin(p * 7) * 4,
+				y = 96 - p * 56 + size * 0.2;
+			ctx.font = `800 ${size}px Inter, ui-sans-serif, sans-serif`;
+			// A light halo keeps them visible on dark and busy backgrounds
+			ctx.lineWidth = 4;
+			ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.75})`;
+			ctx.strokeText('z', x, y);
+			ctx.fillStyle = `rgba(74,104,118,${alpha * 0.95})`;
+			ctx.fillText('z', x, y);
 		}
 		// Sparkles: 4-point stars thrown up, slowed by gravity, spinning and fading
 		sparkles = sparkles.filter((p) => now - p.born < p.life);

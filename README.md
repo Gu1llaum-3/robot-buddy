@@ -62,6 +62,9 @@ Dans la page où il doit se poser, réserver sa place (la taille vient de la cla
   premier clic ou la première touche le réveille, surpris. Il ne s'endort pas pendant `focus`.
 - Ces réactions passent par-dessus `emotion` puis la rendent : la logique est dans `mood.ts`
   (testée dans `mood.test.ts`) ; `createRobot(canvas, { sleepAfter })` change le délai.
+- Endormi, `Robot.svelte` affiche des « z » en HTML au-dessus de lui (13 px au minimum, ils
+  peuvent déborder du canvas) ; le moteur seul les dessine sur le canvas (`sleepZs`), et
+  `onemotion` signale chaque changement d'expression.
 - Changement de place : téléportation (il se replie en rayon de lumière puis réapparaît). Avec
   `prefers-reduced-motion`, il change de place sans animation.
 
