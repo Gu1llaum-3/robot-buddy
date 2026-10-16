@@ -7,9 +7,12 @@
 <script lang="ts">
 	import { onMount, type Snippet } from 'svelte';
 	import { createRobot, type Emotion, type Robot } from './engine.ts';
+	import type { RobotLook } from './looks.ts';
 
 	type Props = {
 		emotion?: Emotion;
+		/** Shell and colour (see looks.ts); the mint pebble by default. */
+		look?: RobotLook;
 		/** Pokes tickle him; off, he only follows the cursor and blinks on hover. */
 		interactive?: boolean;
 		label?: string;
@@ -19,6 +22,7 @@
 	};
 	let {
 		emotion = 'neutral',
+		look,
 		interactive = true,
 		label = 'Petit robot animé',
 		decorative = false,
@@ -34,6 +38,7 @@
 		// The z's are drawn here rather than on the canvas, so they stay readable on a small robot
 		robot = createRobot(canvas, {
 			interactive,
+			look,
 			target: root,
 			sleepZs: false,
 			onemotion: (e) => (asleep = e === 'sleep')
@@ -41,6 +46,9 @@
 		return () => robot?.destroy();
 	});
 	$effect(() => robot?.set(emotion));
+	$effect(() => {
+		if (look) robot?.setLook({ shell: look.shell, color: look.color });
+	});
 	$effect(() => robot?.setInteractive(interactive));
 
 	export function celebrate() {

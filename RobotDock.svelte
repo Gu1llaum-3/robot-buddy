@@ -9,17 +9,20 @@
 	import Robot from './Robot.svelte';
 	import { anchor } from './anchor.svelte.ts';
 	import type { Emotion } from './engine.ts';
+	import type { RobotLook } from './looks.ts';
 
 	type Where = 'anchor' | 'corner' | 'hidden';
 	type Props = {
 		where: Where;
 		emotion?: Emotion;
+		/** Shell and colour (see looks.ts); the mint pebble by default. */
+		look?: RobotLook;
 		/** Accessible name of the corner button. */
 		label?: string;
 		/** Corner button pressed. */
 		onactivate?: () => void;
 	};
-	let { where, emotion = 'neutral', label = 'Ouvrir', onactivate }: Props = $props();
+	let { where, emotion = 'neutral', look, label = 'Ouvrir', onactivate }: Props = $props();
 
 	type Rect = { top: number; left: number; size: number };
 	let rect: Rect | null = $state(null);
@@ -106,6 +109,7 @@
 		<Robot
 			bind:this={robot}
 			{emotion}
+			{look}
 			interactive={shown === 'anchor'}
 			decorative={shown === 'corner'}
 		>

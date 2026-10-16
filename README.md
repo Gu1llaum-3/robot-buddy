@@ -7,13 +7,15 @@ Svelte 5 (le moteur `engine.ts` seul marche aussi sans Svelte).
 
 ## Fichiers
 
-| Fichier              | Rôle                                                              |
-| -------------------- | ----------------------------------------------------------------- |
-| `engine.ts`          | Moteur : `createRobot(canvas, options)`, sans framework           |
-| `Robot.svelte`       | Le robot sur un canvas carré qui remplit son parent               |
-| `RobotDock.svelte`   | Une instance pour toute l'app : sur l'emplacement ou dans le coin |
-| `RobotAnchor.svelte` | Emplacement réservé par une page, que le dock vient occuper       |
-| `anchor.svelte.ts`   | État partagé entre `RobotAnchor` et `RobotDock`                   |
+| Fichier              | Rôle                                                                  |
+| -------------------- | --------------------------------------------------------------------- |
+| `engine.ts`          | Moteur : `createRobot(canvas, options)`, sans framework               |
+| `Robot.svelte`       | Le robot sur un canvas carré qui remplit son parent                   |
+| `RobotDock.svelte`   | Une instance pour toute l'app : sur l'emplacement ou dans le coin     |
+| `RobotAnchor.svelte` | Emplacement réservé par une page, que le dock vient occuper           |
+| `anchor.svelte.ts`   | État partagé entre `RobotAnchor` et `RobotDock`                       |
+| `looks.ts`           | Coques, couleurs proposées, `normalizeLook`, tons tirés d'une couleur |
+| `mood.ts`            | Réactions (amour, antenne, sommeil) par-dessus l'expression demandée  |
 
 ## Utilisation
 
@@ -82,5 +84,25 @@ robot.set('focus');
 robot.celebrate();
 robot.destroy(); // arrête l'animation et retire les écouteurs
 ```
+
+## Coques et couleurs
+
+Huit coques, dans `SHELLS` (`looks.ts`) : `pebble` (Galet, par défaut), `crt` (Télé rétro),
+`egg` (Pocket), `helmet` (Astronaute), `cat` (Chaton), `headphones` (Casque audio), `cloud`
+(Nuage), `pixel` (Pixel). Chacune a sa couleur conseillée ; `ROBOT_COLORS` propose neuf teintes,
+et n'importe quelle couleur `#rrggbb` convient : le clair, l'ombre et le contour en sont tirés.
+
+```svelte
+<RobotDock {where} look={{ shell: 'crt', color: '#f2d47e' }} />
+```
+
+- `look` est facultatif : sans lui, c'est le galet menthe. Il change en direct (`setLook()` côté
+  moteur).
+- `normalizeLook(valeur)` rend une apparence sûre à partir d'une valeur enregistrée ou reçue : une
+  coque inconnue devient le galet, une couleur invalide la couleur conseillée de la coque. Les
+  identifiants des coques sont faits pour être enregistrés : ne pas les renommer.
+- Les yeux, les expressions, le sommeil et la téléportation sont les mêmes pour toutes les
+  coques ; le clic qui fait sursauter vise le haut de chaque coque (antenne, oreilles du chaton,
+  haut du nuage…).
 
 Démo jouable de toutes les expressions : `docs/poc/robot-demo.html`.
