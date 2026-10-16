@@ -27,7 +27,7 @@ async function drawn(look?: RobotLook, onemotion?: (e: string) => void) {
 		const at = { clientX: r.left + (x / 300) * r.width, clientY: r.top + (y / 300) * r.height };
 		canvas.dispatchEvent(new PointerEvent('pointerdown', { ...at, bubbles: true }));
 	};
-	return Object.assign(pixel, { press });
+	return Object.assign(pixel, { press, robot });
 }
 
 // Where the top of each shell is: its antenna, or what stands in for it
@@ -52,6 +52,13 @@ describe.each(SHELLS.map((s) => s.id))('shell %s (AC-6)', (shell) => {
 	it('shows the whole eyes', async () => {
 		const pixel = await drawn({ shell, color: '#a3d6c1' });
 		expect(pixel(106, 190)[0]).toBeGreaterThan(200);
+	});
+	it('keeps the tallest eyes whole (surprised)', async () => {
+		const pixel = await drawn({ shell, color: '#a3d6c1' });
+		pixel.robot.set('surprised');
+		await new Promise((resolve) => setTimeout(resolve, 1200));
+		// Surprised eyes are 96 high around y 158: their top and bottom stay white
+		expect(Math.min(pixel(106, 120)[0], pixel(106, 196)[0])).toBeGreaterThan(200);
 	});
 	it('flinches when its top is clicked', async () => {
 		const seen: string[] = [];
