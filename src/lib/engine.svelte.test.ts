@@ -11,6 +11,9 @@ async function drawn(look?: RobotLook, onemotion?: (e: string) => void) {
 	const canvas = document.createElement('canvas');
 	canvas.width = canvas.height = 300;
 	canvas.style.width = canvas.style.height = `${300 / devicePixelRatio}px`;
+	// Away from the pointer resting at the top left: on Linux, Chromium reports it hovering the
+	// robot, who falls in love after a while and swaps his eyes for hearts
+	canvas.style.margin = '40px';
 	document.body.append(canvas);
 	const robot: Robot = createRobot(canvas, { interactive: true, look, onemotion });
 	cleanup = () => {
