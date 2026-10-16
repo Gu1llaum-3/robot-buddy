@@ -1,0 +1,43 @@
+# On a version tag (v0.1.0…): check, test, build the package and attach its tarball to a GitHub
+# release, so projects install it prebuilt, without running any script.
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Node and pnpm from mise.toml
+      - uses: jdx/mise-action@v5
+
+      - name: Tag matches package.json version
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $version"
+            exit 1
+          fi
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+
+      - run: pnpm check
+      - run: pnpm lint
+      - run: pnpm test
+
+      - run: pnpm build
+      - run: pnpm pack
+
+      - name: Create the release with the tarball
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" robot-buddy-*.tgz --title "$GITHUB_REF_NAME" --generate-notes

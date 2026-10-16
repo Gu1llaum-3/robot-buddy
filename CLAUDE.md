@@ -73,6 +73,10 @@ its drawing to `SHELL_DRAWINGS` in `engine.ts`, and add a click point to `TOP` i
 
 ## Conventions
 
+- Releases: pushing a `v<version>` tag (must equal `package.json` `version`) runs
+  `.github/workflows/release.yml`, which tests, packs and attaches the tarball to a GitHub
+  release; that tarball is the recommended install path. Keep the `prepare` script: it is what
+  makes installing straight from git work.
 - Sources import siblings with explicit `.ts` extensions (`allowImportingTsExtensions` +
   `rewriteRelativeImportExtensions`); they become `.js` in `dist/` (git-ignored).
 - Prettier: tabs, single quotes, no trailing commas, width 100.

@@ -49,18 +49,29 @@ Aucune dépendance npm n'est nécessaire pour faire tourner le robot.
 
 ## Installer
 
-Trois façons, de la plus simple à la plus suivie :
+Quatre façons :
 
-1. **Copier les sources** : le dossier `src/lib/` dans le projet (par exemple dans
+1. **Archive d'une release** (conseillé) : chaque
+   [release GitHub](https://github.com/Gu1llaum-3/robot-buddy/releases) porte le paquet, déjà
+   construit. Rien ne s'exécute à l'installation, et la version est figée.
+
+   ```sh
+   pnpm add https://github.com/Gu1llaum-3/robot-buddy/releases/download/v0.1.0/robot-buddy-0.1.0.tgz
+   # ou : npm install https://github.com/Gu1llaum-3/robot-buddy/releases/download/v0.1.0/robot-buddy-0.1.0.tgz
+   ```
+
+2. **Dépendance git** : `pnpm add github:Gu1llaum-3/robot-buddy#v0.1.0` (ou `npm install`). Le
+   script `prepare` construit `dist/` à l'installation, avec les outils de développement : il faut
+   donc l'autoriser. Avec pnpm, ajouter `robot-buddy` à `allowBuilds` dans `pnpm-workspace.yaml`
+   (pnpm affiche l'entrée exacte) ; npm le construit, mais avertit tant qu'on n'a pas lancé
+   `npm install-scripts approve robot-buddy`.
+3. **Copier les sources** : le dossier `src/lib/` dans le projet (par exemple dans
    `src/lib/robot-buddy/`), sans les fichiers `*.test.ts` si l'on ne garde pas les tests. On
    importe alors les fichiers directement (`./robot-buddy/engine.ts`,
    `./robot-buddy/RobotDock.svelte`).
-2. **Dépendance git** : `pnpm add github:Gu1llaum-3/robot-buddy` (ou `npm install`). Le script
-   `prepare` construit `dist/` à l'installation. Avec pnpm 10 ou plus, autoriser ce script :
-   `pnpm approve-builds`, ou `onlyBuiltDependencies: [robot-buddy]` dans `pnpm-workspace.yaml`.
-3. **Paquet npm** : pas encore publié (`"private": true` dans `package.json`).
+4. **Paquet npm** : pas encore publié (`"private": true` dans `package.json`).
 
-Avec les façons 2 et 3, le paquet a deux points d'entrée :
+Sauf en copiant les sources, le paquet a deux points d'entrée :
 
 ```ts
 import { createRobot, SHELLS, normalizeLook } from 'robot-buddy'; // tout projet, sans framework
@@ -424,6 +435,17 @@ pnpm lint                             # mise en forme (Prettier)
 - Sources dans `src/lib/`, paquet construit dans `dist/` (ignoré par git). Les imports en `.ts`
   des sources deviennent des `.js` dans `dist/`.
 - Messages de commit en anglais (conventional commits), comme dans le projet d'origine.
+
+**Publier une version** : changer `version` dans `package.json`, commiter, puis pousser le tag
+correspondant.
+
+```sh
+git tag v0.2.0 && git push origin v0.2.0
+```
+
+Le workflow `Release` (`.github/workflows/release.yml`) vérifie que le tag correspond à la
+version, lance les vérifications et les tests, construit le paquet et joint
+`robot-buddy-<version>.tgz` à une nouvelle release GitHub.
 
 ## Licence
 

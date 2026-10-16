@@ -49,17 +49,27 @@ No npm dependency is needed to run the robot.
 
 ## Installing
 
-Three ways, from the simplest to the most tracked:
+Four ways:
 
-1. **Copy the sources**: the `src/lib/` folder into the project (for example into
+1. **Release tarball** (recommended): each
+   [GitHub release](https://github.com/Gu1llaum-3/robot-buddy/releases) carries the package,
+   already built. Nothing runs on install, and the version is pinned.
+
+   ```sh
+   pnpm add https://github.com/Gu1llaum-3/robot-buddy/releases/download/v0.1.0/robot-buddy-0.1.0.tgz
+   # or: npm install https://github.com/Gu1llaum-3/robot-buddy/releases/download/v0.1.0/robot-buddy-0.1.0.tgz
+   ```
+
+2. **Git dependency**: `pnpm add github:Gu1llaum-3/robot-buddy#v0.1.0` (or `npm install`). The
+   `prepare` script builds `dist/` on install, with the development tools, so it has to be
+   allowed: with pnpm, add `robot-buddy` to `allowBuilds` in `pnpm-workspace.yaml` (pnpm prints
+   the exact entry); npm builds it but warns until `npm install-scripts approve robot-buddy`.
+3. **Copy the sources**: the `src/lib/` folder into the project (for example into
    `src/lib/robot-buddy/`), without the `*.test.ts` files if you don't keep the tests. You then
    import the files directly (`./robot-buddy/engine.ts`, `./robot-buddy/RobotDock.svelte`).
-2. **Git dependency**: `pnpm add github:Gu1llaum-3/robot-buddy` (or `npm install`). The `prepare`
-   script builds `dist/` on install. With pnpm 10 or later, allow that script:
-   `pnpm approve-builds`, or `onlyBuiltDependencies: [robot-buddy]` in `pnpm-workspace.yaml`.
-3. **npm package**: not published yet (`"private": true` in `package.json`).
+4. **npm package**: not published yet (`"private": true` in `package.json`).
 
-With ways 2 and 3, the package has two entry points:
+Except when copying the sources, the package has two entry points:
 
 ```ts
 import { createRobot, SHELLS, normalizeLook } from 'robot-buddy'; // any project, no framework
@@ -419,6 +429,16 @@ pnpm lint                             # formatting (Prettier)
 - Sources in `src/lib/`, package built into `dist/` (ignored by git). The sources' `.ts` imports
   become `.js` in `dist/`.
 - Commit messages in English (conventional commits), as in the original project.
+
+**Releasing a version**: bump `version` in `package.json`, commit, then push a matching tag.
+
+```sh
+git tag v0.2.0 && git push origin v0.2.0
+```
+
+The `Release` workflow (`.github/workflows/release.yml`) checks that the tag matches the
+version, runs the checks and tests, builds the package and attaches `robot-buddy-<version>.tgz` to
+a new GitHub release.
 
 ## Licence
 
