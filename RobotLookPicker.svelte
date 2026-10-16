@@ -5,15 +5,13 @@
 -->
 <script lang="ts">
 	import Robot from './Robot.svelte';
-	import { DEFAULT_LOOK, ROBOT_COLORS, SHELLS, type RobotLook } from './looks.ts';
+	import { DEFAULT_LOOK, ROBOT_COLORS, SHELLS, suggestedColor, type RobotLook } from './looks.ts';
 
 	let { look = $bindable({ ...DEFAULT_LOOK }) }: { look?: RobotLook } = $props();
 
-	const suggested = (shell: string) => SHELLS.find((s) => s.id === shell)?.color;
-
 	// A new shell brings its own colour, unless a colour of one's own was picked.
 	function pickShell(shell: RobotLook['shell']) {
-		const color = look.color === suggested(look.shell) ? suggested(shell)! : look.color;
+		const color = look.color === suggestedColor(look.shell) ? suggestedColor(shell) : look.color;
 		look = { shell, color };
 	}
 	const pickColor = (color: string) => (look = { ...look, color: color.toLowerCase() });

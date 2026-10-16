@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_LOOK, ROBOT_COLORS, SHELLS, normalizeLook, shellPalette } from './looks.ts';
+import {
+	DEFAULT_LOOK,
+	ROBOT_COLORS,
+	SHELLS,
+	normalizeLook,
+	sameLook,
+	shellPalette,
+	suggestedColor
+} from './looks.ts';
 
 describe('normalizeLook', () => {
 	it('gives the mint pebble when nothing is chosen (AC-1)', () => {
@@ -54,5 +62,26 @@ describe('shellPalette', () => {
 			edge: 'rgb(121,158,143)',
 			deep: 'rgb(73,96,87)'
 		});
+	});
+});
+
+describe('suggestedColor', () => {
+	it("gives a shell's own colour", () => {
+		expect(suggestedColor('crt')).toBe('#f2d47e');
+		expect(suggestedColor('pebble')).toBe(DEFAULT_LOOK.color);
+	});
+});
+
+describe('sameLook', () => {
+	it('compares shell and colour, whatever the case of the colour', () => {
+		expect(sameLook({ shell: 'cat', color: '#F5B0CC' }, { shell: 'cat', color: '#f5b0cc' })).toBe(
+			true
+		);
+		expect(sameLook({ shell: 'cat', color: '#f5b0cc' }, { shell: 'egg', color: '#f5b0cc' })).toBe(
+			false
+		);
+		expect(sameLook({ shell: 'cat', color: '#f5b0cc' }, { shell: 'cat', color: '#ff9447' })).toBe(
+			false
+		);
 	});
 });

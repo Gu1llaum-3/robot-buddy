@@ -26,7 +26,16 @@ export const SHELLS = [
 
 export type ShellId = (typeof SHELLS)[number]['id'];
 export type RobotLook = { shell: ShellId; color: string };
-export const DEFAULT_LOOK: RobotLook = { shell: 'pebble', color: '#a3d6c1' };
+/** The first shell, in its own colour: the robot as it comes. */
+export const DEFAULT_LOOK: RobotLook = { shell: SHELLS[0].id, color: SHELLS[0].color };
+
+export const suggestedColor = (shell: ShellId): string => SHELLS.find((s) => s.id === shell)!.color;
+
+/** Same shell and colour, whatever the case of the colour. */
+export const sameLook = (
+	a: { shell: string; color: string },
+	b: { shell: string; color: string }
+) => a.shell === b.shell && a.color.toLowerCase() === b.color.toLowerCase();
 
 export const isShell = (v: unknown): v is ShellId => SHELLS.some((s) => s.id === v);
 export const isColor = (v: unknown): v is string =>
@@ -37,9 +46,7 @@ export function normalizeLook(
 	raw?: { shell?: string | null; color?: string | null } | null
 ): RobotLook {
 	const shell = isShell(raw?.shell) ? raw.shell : DEFAULT_LOOK.shell;
-	const color = isColor(raw?.color)
-		? raw.color.toLowerCase()
-		: SHELLS.find((s) => s.id === shell)!.color;
+	const color = isColor(raw?.color) ? raw.color.toLowerCase() : suggestedColor(shell);
 	return { shell, color };
 }
 
