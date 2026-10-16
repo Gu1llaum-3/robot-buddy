@@ -5,6 +5,7 @@
 // inspired by the MIT-licensed code of Coucou; the character itself is our own.
 
 import { createMood } from './mood.ts';
+import { normalizeLook, shellPalette, type RobotLook, type ShellId } from './looks.ts';
 
 export type Emotion =
 	| 'neutral'
@@ -29,6 +30,8 @@ export type RobotOptions = {
 	sleepAfter?: number;
 	/** Draw the sleep z's on the canvas (true by default); off when the host draws its own. */
 	sleepZs?: boolean;
+	/** Shell and colour (see looks.ts); the mint pebble by default. */
+	look?: RobotLook;
 	/** Called whenever his expression changes, reactions included. */
 	onemotion?: (emotion: Emotion) => void;
 };
@@ -38,6 +41,8 @@ export type Robot = {
 	/** Blink, squash, big hop, sparkles, then the happy expression: call it when a task is done. */
 	celebrate(): void;
 	blink(side?: 'both' | 'left' | 'right'): void;
+	/** Changes the shell and colour on the fly. */
+	setLook(look: RobotLook): void;
 	setInteractive(on: boolean): void;
 	readonly emotion: Emotion;
 	/** Stops the animation loop and removes every listener. */
@@ -68,8 +73,6 @@ const VIEW = 300; // logical canvas size
 const TAU = Math.PI * 2;
 const BODY = { cx: 150, cy: 168, rx: 116, ry: 104, n: 3 };
 const SCREEN = { cx: 150, cy: 164, rx: 88, ry: 70, n: 3.6 };
-const SHELL = ['#e2f5ed', '#a3d6c1'],
-	SHELL_DARK = '#79b39d';
 const EYE_CY = 164; // eye row on the screen
 const EYE_GAP = 44; // half distance between eye centers when looking straight
 const SPHERE_R = 100; // radius of the virtual sphere the eyes sit on
@@ -236,12 +239,75 @@ function heartPath(c: Ctx, s: number) {
 	c.closePath();
 }
 
+// ── Shells (see looks.ts for the catalogue) ─────────────────────────────
+type Pal = ReturnType<typeof shellPalette> & { shade: (alpha: number) => string };
+function palette(color: string): Pal {
+	const tones = shellPalette(color);
+	return { ...tones, shade: (a) => tones.deep.replace('rgb(', 'rgba(').replace(')', `,${a})`) };
+}
+function ellipsePath(c: Ctx, cx: number, cy: number, rx: number, ry: number) {
+	c.beginPath();
+	c.ellipse(cx, cy, rx, ry, 0, 0, TAU);
+}
+function steppedRect(c: Ctx, x: number, y: number, w: number, h: number, st: number) {
+	// pixel-art corners: two steps of `st`
+	c.beginPath();
+	c.moveTo(x + 2 * st, y);
+	c.lineTo(x + w - 2 * st, y);
+	c.lineTo(x + w - 2 * st, y + st);
+	c.lineTo(x + w - st, y + st);
+	c.lineTo(x + w - st, y + 2 * st);
+	c.lineTo(x + w, y + 2 * st);
+	c.lineTo(x + w, y + h - 2 * st);
+	c.lineTo(x + w - st, y + h - 2 * st);
+	c.lineTo(x + w - st, y + h - st);
+	c.lineTo(x + w - 2 * st, y + h - st);
+	c.lineTo(x + w - 2 * st, y + h);
+	c.lineTo(x + 2 * st, y + h);
+	c.lineTo(x + 2 * st, y + h - st);
+	c.lineTo(x + st, y + h - st);
+	c.lineTo(x + st, y + h - 2 * st);
+	c.lineTo(x, y + h - 2 * st);
+	c.lineTo(x, y + 2 * st);
+	c.lineTo(x + st, y + 2 * st);
+	c.lineTo(x + st, y + st);
+	c.lineTo(x + 2 * st, y + st);
+	c.closePath();
+}
+function eggPath(c: Ctx) {
+	c.beginPath();
+	c.moveTo(150, 44);
+	c.bezierCurveTo(232, 44, 274, 140, 272, 206);
+	c.bezierCurveTo(270, 262, 222, 284, 150, 284);
+	c.bezierCurveTo(78, 284, 30, 262, 28, 206);
+	c.bezierCurveTo(26, 140, 68, 44, 150, 44);
+	c.closePath();
+}
+const CLOUD = [
+	[150, 196, 104, 76],
+	[74, 186, 50, 50],
+	[226, 186, 50, 50],
+	[104, 118, 52, 52],
+	[196, 112, 56, 56],
+	[150, 92, 52, 52]
+];
+function cloudPath(c: Ctx) {
+	c.beginPath();
+	for (const [x, y, rx, ry] of CLOUD) {
+		c.moveTo(x + rx, y);
+		c.ellipse(x, y, rx, ry, 0, 0, TAU);
+	}
+}
+
 export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {}): Robot {
 	const ctx = canvas.getContext('2d')!;
 	const layer = document.createElement('canvas');
 	const lctx = layer.getContext('2d')!;
 	let interactive = options.interactive ?? true;
 	const target = options.target ?? canvas;
+	const start = normalizeLook(options.look);
+	let shell: ShellId = start.shell;
+	let pal = palette(start.color);
 	// What he shows: the host's expression, or a reaction of his own (love, antenna, sleep)
 	const mood = createMood({ sleepAfter: options.sleepAfter }, performance.now());
 
@@ -448,15 +514,85 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 	};
 
 	function drawAntenna(strain: number) {
+		const a = antenna.x;
+		ctx.lineCap = 'round';
+		ctx.lineJoin = 'round';
+		if (shell === 'crt') {
+			// rabbit-ear TV antennas, swaying with the spring
+			for (const [dx, len, side] of [
+				[-1, 52, -1],
+				[1, 60, 1]
+			]) {
+				const ang = side * 0.55 + a * 0.8;
+				const tipX = 150 + dx * 6 + Math.sin(ang) * len,
+					tipY = 74 - Math.cos(ang) * len;
+				ctx.lineWidth = 4;
+				ctx.strokeStyle = pal.deep;
+				ctx.beginPath();
+				ctx.moveTo(150 + dx * 6, 74);
+				ctx.lineTo(tipX, tipY);
+				ctx.stroke();
+				ctx.fillStyle = pal.edge;
+				ctx.beginPath();
+				ctx.arc(tipX, tipY, 6 + 2 * strain, 0, TAU);
+				ctx.fill();
+			}
+			ctx.fillStyle = pal.deep;
+			ctx.beginPath();
+			ctx.ellipse(150, 76, 16, 8, 0, Math.PI, TAU);
+			ctx.fill();
+			return;
+		}
+		if (shell === 'egg') {
+			// keyring loop on top, swinging
+			ctx.save();
+			ctx.translate(150, 50);
+			ctx.rotate(a * 0.9);
+			ctx.lineWidth = 6;
+			ctx.strokeStyle = pal.edge;
+			ctx.beginPath();
+			ctx.arc(0, -16, 13, 0, TAU);
+			ctx.stroke();
+			ctx.restore();
+			return;
+		}
+		if (shell === 'pixel') {
+			const off = Math.round(Math.sin(a) * 3) * 4;
+			ctx.fillStyle = pal.deep;
+			ctx.fillRect(146 + off / 2, 44, 8, 26);
+			ctx.fillStyle = strain > 0.2 ? '#ffd166' : pal.edge;
+			ctx.fillRect(138 + off, 28, 24, 18);
+			return;
+		}
+		if (shell === 'helmet') {
+			// little beacon on top of the dome
+			ctx.fillStyle = pal.edge;
+			ctx.beginPath();
+			ctx.roundRect(138, 34, 24, 12, 4);
+			ctx.fill();
+			const r = 8 * (1 + 0.3 * strain);
+			const g = ctx.createRadialGradient(150, 28, 0, 150, 28, r * 2.2);
+			g.addColorStop(0, loveLevel > 0.5 ? 'rgba(255,143,179,1)' : 'rgba(255,255,255,1)');
+			g.addColorStop(
+				0.4,
+				loveLevel > 0.5 ? 'rgba(255,143,179,.7)' : `rgba(255,214,102,${0.6 + 0.4 * strain})`
+			);
+			g.addColorStop(1, 'rgba(255,214,102,0)');
+			ctx.fillStyle = g;
+			ctx.beginPath();
+			ctx.arc(150, 28, r * 2.2, 0, TAU);
+			ctx.fill();
+			return;
+		}
+		if (shell === 'cat' || shell === 'cloud') return; // ears / no antenna
 		const baseX = BODY.cx,
 			baseY = BODY.cy - BODY.ry + 8,
-			len = 36,
-			a = antenna.x;
+			len = 36;
 		const tipX = baseX + Math.sin(a) * len,
 			tipY = baseY - Math.cos(a) * len;
 		ctx.lineCap = 'round';
 		ctx.lineWidth = 5;
-		ctx.strokeStyle = SHELL_DARK;
+		ctx.strokeStyle = pal.edge;
 		ctx.beginPath();
 		ctx.moveTo(baseX, baseY);
 		ctx.quadraticCurveTo(baseX + Math.sin(a) * len * 0.25, baseY - len * 0.6, tipX, tipY);
@@ -482,35 +618,196 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 		}
 		const g = ctx.createRadialGradient(tipX - r * 0.35, tipY - r * 0.4, 0, tipX, tipY, r);
 		g.addColorStop(0, '#ffffff');
-		g.addColorStop(1, emotion === 'sleep' ? SHELL_DARK : SHELL[1]);
+		g.addColorStop(1, emotion === 'sleep' ? pal.edge : pal.mid);
 		ctx.fillStyle = g;
 		ctx.beginPath();
 		ctx.arc(tipX, tipY, r, 0, TAU);
 		ctx.fill();
 	}
 
+	function shellPath() {
+		switch (shell) {
+			case 'crt':
+				return roundRect(ctx, 20, 70, 260, 196, 30);
+			case 'helmet':
+				return ellipsePath(ctx, 150, 158, 128, 120);
+			case 'egg':
+				return eggPath(ctx);
+			case 'cloud':
+				return cloudPath(ctx);
+			case 'pixel':
+				return steppedRect(ctx, 32, 68, 236, 204, 10);
+			default:
+				return squircle(ctx, BODY);
+		}
+	}
+	function screenPath() {
+		switch (shell) {
+			case 'crt':
+				return squircle(ctx, { cx: 150, cy: 158, rx: 98, ry: 70, n: 4.4 });
+			case 'helmet':
+				return ellipsePath(ctx, 150, 160, 100, 80);
+			case 'egg':
+				return squircle(ctx, { cx: 150, cy: 158, rx: 86, ry: 64, n: 3.2 });
+			case 'pixel':
+				return steppedRect(ctx, 60, 96, 180, 134, 8);
+			default:
+				return squircle(ctx, SCREEN);
+		}
+	}
 	function drawShell() {
-		squircle(ctx, BODY);
-		const g = ctx.createLinearGradient(0, BODY.cy - BODY.ry, 0, BODY.cy + BODY.ry);
-		g.addColorStop(0, SHELL[0]);
-		g.addColorStop(1, SHELL[1]);
-		ctx.fillStyle = g;
-		ctx.fill();
-		ctx.save();
-		ctx.clip();
-		// Edge shading for volume, then a soft specular highlight top-left
-		const sh = ctx.createRadialGradient(BODY.cx, BODY.cy, 30, BODY.cx, BODY.cy, 150);
-		sh.addColorStop(0, 'rgba(20,70,55,0)');
-		sh.addColorStop(0.62, 'rgba(20,70,55,0)');
-		sh.addColorStop(1, 'rgba(20,70,55,.22)');
-		ctx.fillStyle = sh;
-		ctx.fillRect(0, 0, VIEW, VIEW);
-		const hl = ctx.createRadialGradient(104, BODY.cy - 72, 0, 104, BODY.cy - 72, 64);
-		hl.addColorStop(0, 'rgba(255,255,255,.7)');
-		hl.addColorStop(1, 'rgba(255,255,255,0)');
-		ctx.fillStyle = hl;
-		ctx.fillRect(0, 0, VIEW, VIEW);
-		ctx.restore();
+		// behind the body
+		if (shell === 'cat') {
+			for (const sd of [-1, 1]) {
+				ctx.save();
+				ctx.translate(150 + sd * 70, 84);
+				ctx.rotate(sd * 0.32);
+				ctx.beginPath();
+				ctx.moveTo(-34, 22);
+				ctx.quadraticCurveTo(-8, -62, 4, -60);
+				ctx.quadraticCurveTo(20, -58, 36, 22);
+				ctx.closePath();
+				ctx.fillStyle = pal.mid;
+				ctx.fill();
+				ctx.beginPath();
+				ctx.moveTo(-18, 14);
+				ctx.quadraticCurveTo(-4, -36, 4, -36);
+				ctx.quadraticCurveTo(12, -36, 20, 14);
+				ctx.closePath();
+				ctx.fillStyle = 'rgba(255,150,185,.55)';
+				ctx.fill();
+				ctx.restore();
+			}
+		}
+		if (shell === 'headphones') {
+			ctx.lineWidth = 12;
+			ctx.lineCap = 'round';
+			ctx.strokeStyle = pal.deep;
+			ctx.beginPath();
+			ctx.arc(150, 168, 138, Math.PI * 1.12, Math.PI * 1.88);
+			ctx.stroke();
+		}
+		if (shell === 'crt') {
+			ctx.fillStyle = pal.deep;
+			ctx.beginPath();
+			ctx.roundRect(56, 258, 30, 22, 6);
+			ctx.roundRect(214, 258, 30, 22, 6);
+			ctx.fill();
+		}
+		if (shell === 'pixel') {
+			ctx.fillStyle = pal.deep;
+			ctx.fillRect(72, 270, 36, 14);
+			ctx.fillRect(192, 270, 36, 14);
+		}
+
+		shellPath();
+		if (shell === 'pixel') {
+			ctx.fillStyle = pal.mid;
+			ctx.fill();
+			ctx.lineWidth = 8;
+			ctx.strokeStyle = pal.deep;
+			ctx.stroke();
+		} else {
+			const g = ctx.createLinearGradient(0, 40, 0, 290);
+			g.addColorStop(0, pal.light);
+			g.addColorStop(1, pal.mid);
+			ctx.fillStyle = g;
+			ctx.fill();
+			ctx.save();
+			ctx.clip();
+			const sh = ctx.createRadialGradient(150, 168, 30, 150, 168, 160);
+			sh.addColorStop(0, pal.shade(0));
+			sh.addColorStop(0.62, pal.shade(0));
+			sh.addColorStop(1, pal.shade(0.28));
+			ctx.fillStyle = sh;
+			ctx.fillRect(0, 0, VIEW, VIEW);
+			const hl = ctx.createRadialGradient(100, 96, 0, 100, 96, 70);
+			hl.addColorStop(0, 'rgba(255,255,255,.7)');
+			hl.addColorStop(1, 'rgba(255,255,255,0)');
+			ctx.fillStyle = hl;
+			ctx.fillRect(0, 0, VIEW, VIEW);
+			ctx.restore();
+		}
+
+		// on top of the body, around the screen
+		if (shell === 'crt') {
+			// knobs and speaker slots under the screen
+			ctx.fillStyle = pal.edge;
+			for (let k = 0; k < 4; k++) ctx.fillRect(56 + k * 14, 240, 8, 14);
+			for (const x of [212, 240]) {
+				ctx.beginPath();
+				ctx.arc(x, 247, 9, 0, TAU);
+				ctx.fillStyle = pal.deep;
+				ctx.fill();
+				ctx.fillStyle = pal.light;
+				ctx.fillRect(x - 1.5, 239, 3, 8);
+			}
+		}
+		if (shell === 'egg') {
+			// three toy buttons under the screen
+			for (const [x, y] of [
+				[112, 252],
+				[150, 262],
+				[188, 252]
+			]) {
+				ctx.beginPath();
+				ctx.arc(x, y, 10, 0, TAU);
+				ctx.fillStyle = pal.deep;
+				ctx.fill();
+				ctx.beginPath();
+				ctx.arc(x - 2, y - 3, 4, 0, TAU);
+				ctx.fillStyle = 'rgba(255,255,255,.35)';
+				ctx.fill();
+			}
+		}
+		if (shell === 'helmet') {
+			// collar ring
+			ctx.save();
+			ctx.beginPath();
+			ctx.ellipse(150, 266, 96, 18, 0, 0, TAU);
+			ctx.fillStyle = pal.edge;
+			ctx.fill();
+			ctx.beginPath();
+			ctx.ellipse(150, 262, 96, 13, 0, 0, TAU);
+			ctx.fillStyle = pal.light;
+			ctx.fill();
+			ctx.restore();
+		}
+		if (shell === 'headphones') {
+			for (const sd of [-1, 1]) {
+				ctx.beginPath();
+				ctx.roundRect(150 + sd * 128 - 20, 128, 40, 84, 18);
+				ctx.fillStyle = pal.deep;
+				ctx.fill();
+				ctx.beginPath();
+				ctx.roundRect(150 + sd * 128 - 12 + sd * 4, 140, 20, 60, 10);
+				ctx.fillStyle = pal.edge;
+				ctx.fill();
+			}
+		}
+	}
+
+	function drawFront() {
+		if (shell === 'helmet') {
+			// glass visor reflection over the whole dome
+			ctx.save();
+			ellipsePath(ctx, 150, 158, 128, 120);
+			ctx.clip();
+			ctx.strokeStyle = 'rgba(255,255,255,.55)';
+			ctx.lineWidth = 6;
+			ctx.beginPath();
+			ctx.arc(150, 158, 112, Math.PI * 1.08, Math.PI * 1.38);
+			ctx.stroke();
+			ctx.restore();
+		}
+		if (shell === 'crt') {
+			ctx.save();
+			screenPath();
+			ctx.clip();
+			ctx.fillStyle = 'rgba(255,255,255,.035)';
+			for (let y = 84; y < 236; y += 4) ctx.fillRect(40, y, 220, 1.5);
+			ctx.restore();
+		}
 	}
 
 	function drawSpiral(cx: number, cy: number, side: number, tt: number) {
@@ -788,9 +1085,9 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 
 		// Screen: bezel, dark glass, then everything inside is clipped to it
 		ctx.save();
-		squircle(ctx, SCREEN);
-		ctx.lineWidth = 7;
-		ctx.strokeStyle = 'rgba(30,80,65,.16)';
+		screenPath();
+		ctx.lineWidth = shell === 'pixel' ? 8 : 7;
+		ctx.strokeStyle = shell === 'pixel' ? pal.deep : pal.shade(0.22);
 		ctx.stroke();
 		ctx.fillStyle = '#101827';
 		ctx.fill();
@@ -818,6 +1115,7 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 		ctx.ellipse(122, SCREEN.cy - SCREEN.ry * 0.62, 58, 24, -0.25, 0, TAU);
 		ctx.fill();
 		ctx.restore();
+		drawFront();
 
 		ctx.restore();
 		drawParticles(now);
@@ -970,12 +1268,25 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 		hovering = false;
 		mood.hover(false, performance.now());
 	}
-	// The antenna, in the 300×300 drawing: the stalk and its ball above the head
+	// The top of the shell, in the 300×300 drawing: the antenna, or what stands in for it
 	function onAntenna(e: PointerEvent) {
 		const r = canvas.getBoundingClientRect();
 		const x = ((e.clientX - r.left) / r.width) * VIEW,
 			y = ((e.clientY - r.top) / r.height) * VIEW;
-		return Math.abs(x - BODY.cx) <= 18 && y >= 18 && y <= BODY.cy - BODY.ry + 6;
+		switch (shell) {
+			case 'crt': // rabbit ears
+				return x >= 92 && x <= 214 && y >= 10 && y <= 78;
+			case 'cat': // the ears, either side
+				return Math.abs(Math.abs(x - 150) - 72) <= 34 && y >= 22 && y <= 92;
+			case 'cloud': // the top puff
+				return Math.abs(x - 150) <= 46 && y >= 40 && y <= 82;
+			case 'helmet': // the beacon
+				return Math.abs(x - 150) <= 20 && y >= 12 && y <= 48;
+			case 'egg': // the keyring
+				return Math.abs(x - 150) <= 18 && y >= 16 && y <= 52;
+			default:
+				return Math.abs(x - 150) <= 18 && y >= 18 && y <= 70;
+		}
 	}
 	function onPointerDown(e: PointerEvent) {
 		if (!interactive) return;
@@ -1019,6 +1330,11 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 		},
 		celebrate,
 		blink,
+		setLook: (look) => {
+			const next = normalizeLook(look);
+			shell = next.shell;
+			pal = palette(next.color);
+		},
 		setInteractive: (on) => {
 			interactive = on;
 		},
