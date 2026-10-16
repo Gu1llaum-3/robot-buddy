@@ -6,7 +6,7 @@
 -->
 <script lang="ts">
 	import { onMount, type Snippet } from 'svelte';
-	import { createRobot, type Emotion, type Robot } from './engine.ts';
+	import { createRobot, type Emotion, type Robot as RobotEngine } from './engine.ts';
 	import { DEFAULT_LOOK, type RobotLook } from './looks.ts';
 
 	type Props = {
@@ -34,7 +34,7 @@
 
 	let root: HTMLDivElement;
 	let canvas: HTMLCanvasElement;
-	let robot: Robot | undefined = $state.raw();
+	let robot: RobotEngine | undefined = $state.raw();
 	let asleep = $state(false);
 
 	onMount(() => {
