@@ -925,7 +925,8 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 		const size = canvas.clientWidth;
 		if (!size) return;
 		const px = Math.round(size * Math.min(2.5, window.devicePixelRatio || 1));
-		if (canvas.width !== px) {
+		// The eye layer starts at the default 300×150: size it even when the canvas already fits
+		if (canvas.width !== px || layer.width !== px || layer.height !== px) {
 			canvas.width = canvas.height = px;
 			layer.width = layer.height = px;
 		}
