@@ -61,6 +61,10 @@ describe('robot mood', () => {
 			mood.hover(true, 0);
 			expect(mood.current(SLEEP)).toBe('sleep');
 		});
+		it('never sleeps when kept awake (sleepAfter: Infinity)', () => {
+			const mood = createMood({ sleepAfter: Infinity }, 0);
+			expect(mood.current(SLEEP * 100)).toBe('neutral');
+		});
 		it('never sleeps while the agent is working', () => {
 			const mood = start();
 			mood.setBase('focus');

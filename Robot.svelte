@@ -13,6 +13,8 @@
 		emotion?: Emotion;
 		/** Shell and colour (see looks.ts); the mint pebble by default. */
 		look?: RobotLook;
+		/** Inactivity before he falls asleep, in ms (60 s); `Infinity` keeps him awake. */
+		sleepAfter?: number;
 		/** Pokes tickle him; off, he only follows the cursor and blinks on hover. */
 		interactive?: boolean;
 		label?: string;
@@ -23,6 +25,7 @@
 	let {
 		emotion = 'neutral',
 		look,
+		sleepAfter,
 		interactive = true,
 		label = 'Petit robot animé',
 		decorative = false,
@@ -39,6 +42,7 @@
 		robot = createRobot(canvas, {
 			interactive,
 			look,
+			sleepAfter,
 			target: root,
 			sleepZs: false,
 			onemotion: (e) => (asleep = e === 'sleep')

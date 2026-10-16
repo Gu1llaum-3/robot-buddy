@@ -9,17 +9,14 @@
 
 	let { look = $bindable({ ...DEFAULT_LOOK }) }: { look?: RobotLook } = $props();
 
-	// A new shell brings its own colour, unless a colour of one's own was picked.
-	function pickShell(shell: RobotLook['shell']) {
-		const color = look.color === suggestedColor(look.shell) ? suggestedColor(shell) : look.color;
-		look = { shell, color };
-	}
+	// As in a game: a shell comes in its own colour, then it can be repainted.
+	const pickShell = (shell: RobotLook['shell']) => (look = { shell, color: suggestedColor(shell) });
 	const pickColor = (color: string) => (look = { ...look, color: color.toLowerCase() });
 	const isPreset = $derived(ROBOT_COLORS.some((c) => c.hex === look.color));
 </script>
 
 <div class="picker">
-	<div class="preview"><Robot {look} label="Aperçu du robot" /></div>
+	<div class="preview"><Robot {look} label="Aperçu du robot" sleepAfter={Infinity} /></div>
 	<div class="choices">
 		<fieldset>
 			<legend>Coque</legend>
@@ -35,8 +32,12 @@
 						/>
 						<span class="thumb"
 							><Robot
-								look={{ shell: shell.id, color: look.color }}
+								look={{
+									shell: shell.id,
+									color: shell.id === look.shell ? look.color : shell.color
+								}}
 								interactive={false}
+								sleepAfter={Infinity}
 								decorative
 							/></span
 						>
