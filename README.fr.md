@@ -452,7 +452,7 @@ robots sur les deux. Quatre scènes :
 
 | Scène        | Ce qu'elle montre                                                                                                                                        |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Gallery      | Toutes les coques, toutes les expressions et `celebrate()`, sur de simples composants `Robot`                                                            |
+| Gallery      | Toutes les coques et expressions, et les animations (fête, endormissement, réactions), sur de simples composants `Robot`                                 |
 | Store widget | Une fausse boutique : le `RobotDock` attend dans le coin en bouton, puis se téléporte dans l'en-tête du panneau d'aide qu'il ouvre (`corner` → `anchor`) |
 | Chat         | Un assistant pleine page : le robot se tient au-dessus de la conversation sur un `RobotAnchor`, grand à l'accueil, puis plus petit                       |
 | Customize    | `RobotLookPicker` ; l'apparence choisie est gardée dans `localStorage` et habille le robot dans les autres scènes                                        |

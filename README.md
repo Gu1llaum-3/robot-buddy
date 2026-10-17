@@ -444,7 +444,7 @@ and is not part of the published package. A switch in its header picks a light o
 
 | Scene        | What it shows                                                                                                                                    |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Gallery      | Every shell, every expression and `celebrate()`, on plain `Robot` components                                                                     |
+| Gallery      | Every shell and expression, and the animations (celebrate, falling asleep, reactions), on plain `Robot` components                               |
 | Store widget | A pretend shop: the `RobotDock` waits in the corner as a button, then teleports into the header of the help panel it opens (`corner` → `anchor`) |
 | Chat         | A full-page assistant: the robot stands above the conversation on a `RobotAnchor`, large on the welcome screen, then smaller                     |
 | Customize    | `RobotLookPicker`; the chosen look is kept in `localStorage` and dresses the robot in the other scenes                                           |
