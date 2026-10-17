@@ -366,6 +366,8 @@ Variables CSS facultatives, à poser sur `:root` ou sur un parent du dock :
 | `--robot-z`                  | `15`           | `z-index` du dock : au-dessus de la page, sous ses menus et panneaux |
 | `--robot-focus`              | `currentColor` | Anneau de focus du bouton du coin                                    |
 | `--robot-glow`               | vert menthe    | Lueur de la téléportation                                            |
+| `--robot-zzz`                | `#4a6876`      | Couleur des z du sommeil (`Robot`)                                   |
+| `--robot-zzz-halo`           | `#fff`         | Halo autour des z ; à assombrir sur une page sombre                  |
 
 Le composant utilise aussi, s'ils existent, les jetons `--text`, `--text-2`, `--border`,
 `--panel`, `--hover` et `--accent` du projet (sélecteur), avec des valeurs de repli.
@@ -442,8 +444,9 @@ Playwright). Ici : `pnpm test` (voir [Développer le module](#développer-le-mod
 
 `pnpm dev` lance un serveur de développement Vite sur `showcase/` et l'ouvre dans le navigateur.
 C'est une petite application Svelte, en anglais, qui importe la bibliothèque directement depuis
-`src/lib` (les modifications s'affichent en direct) et ne fait pas partie du paquet publié. Quatre
-scènes :
+`src/lib` (les modifications s'affichent en direct) et ne fait pas partie du paquet publié. Un
+interrupteur dans son en-tête choisit un thème clair ou sombre (ou celui du système), pour voir les
+robots sur les deux. Quatre scènes :
 
 | Scène        | Ce qu'elle montre                                                                                                                                        |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |

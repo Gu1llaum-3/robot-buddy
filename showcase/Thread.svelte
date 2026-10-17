@@ -95,7 +95,7 @@
 	.msg.user {
 		align-self: flex-end;
 		background: var(--accent);
-		color: #fff;
+		color: var(--on-accent);
 		border-bottom-right-radius: 4px;
 	}
 	.typing {

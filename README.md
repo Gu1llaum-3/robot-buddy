@@ -361,6 +361,8 @@ Optional CSS variables, to set on `:root` or on a parent of the dock:
 | `--robot-z`                  | `15`           | Dock `z-index`: above the page, below its menus and panels |
 | `--robot-focus`              | `currentColor` | Focus ring of the corner button                            |
 | `--robot-glow`               | mint green     | Teleport glow                                              |
+| `--robot-zzz`                | `#4a6876`      | Colour of the sleep z's (`Robot`)                          |
+| `--robot-zzz-halo`           | `#fff`         | Halo around the z's; darken it on a dark page              |
 
 The component also uses the project's `--text`, `--text-2`, `--border`, `--panel`, `--hover` and
 `--accent` tokens when they exist (picker), with fallback values.
@@ -434,7 +436,8 @@ Here: `pnpm test` (see [Developing the module](#developing-the-module)).
 
 `pnpm dev` starts a Vite dev server on `showcase/` and opens it in the browser. It is a small
 Svelte app, in English, that imports the library straight from `src/lib` (changes show up live)
-and is not part of the published package. Four scenes:
+and is not part of the published package. A switch in its header picks a light or dark theme
+(or the system's), to see the robots on both. Four scenes:
 
 | Scene        | What it shows                                                                                                                                    |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |

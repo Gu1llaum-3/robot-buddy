@@ -1,4 +1,5 @@
-/* Shared tokens: the picker reads --text, --text-2, --border, --panel, --hover and --accent. */
+/* Shared tokens: the picker reads --text, --text-2, --border, --panel, --hover and --accent.
+   Dark follows the system unless the header switch sets data-theme on <html>. */
 :root {
 	color-scheme: light;
 	--bg: #f4f5f7;
@@ -10,6 +11,12 @@
 	--text-3: #8c979e;
 	--accent: #2f8f72;
 	--accent-soft: #e5f3ee;
+	--on-accent: #ffffff;
+	--banner: linear-gradient(120deg, #fbefe2, #f3e3f0);
+	--eyebrow: #b0683d;
+	--shadow: rgba(20, 37, 47, 0.14);
+	--photo: none;
+	--code-bg: #1b2227;
 	--robot-focus: var(--accent);
 	font-family:
 		Inter,
@@ -21,6 +28,48 @@
 	font-size: 15px;
 	line-height: 1.5;
 	color: var(--text);
+}
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) {
+		color-scheme: dark;
+		--bg: #111518;
+		--panel: #1a2024;
+		--hover: #242c31;
+		--border: #2e373d;
+		--text: #e8edf0;
+		--text-2: #a7b3ba;
+		--text-3: #75828a;
+		--accent: #4fbf9a;
+		--accent-soft: #1d3a31;
+		--on-accent: #0d1f19;
+		--banner: linear-gradient(120deg, #2b2119, #2a1d29);
+		--eyebrow: #e0a079;
+		--shadow: rgba(0, 0, 0, 0.45);
+		--photo: brightness(0.82);
+		--code-bg: #0b0e10;
+		--robot-zzz: #c3d3db;
+		--robot-zzz-halo: #000;
+	}
+}
+:root[data-theme='dark'] {
+	color-scheme: dark;
+	--bg: #111518;
+	--panel: #1a2024;
+	--hover: #242c31;
+	--border: #2e373d;
+	--text: #e8edf0;
+	--text-2: #a7b3ba;
+	--text-3: #75828a;
+	--accent: #4fbf9a;
+	--accent-soft: #1d3a31;
+	--on-accent: #0d1f19;
+	--banner: linear-gradient(120deg, #2b2119, #2a1d29);
+	--eyebrow: #e0a079;
+	--shadow: rgba(0, 0, 0, 0.45);
+	--photo: brightness(0.82);
+	--code-bg: #0b0e10;
+	--robot-zzz: #c3d3db;
+	--robot-zzz-halo: #000;
 }
 * {
 	box-sizing: border-box;
@@ -70,7 +119,7 @@ code {
 .btn.primary {
 	background: var(--accent);
 	border-color: var(--accent);
-	color: #fff;
+	color: var(--on-accent);
 }
 .btn.primary:hover {
 	filter: brightness(1.06);
