@@ -11,8 +11,11 @@ Tout est dessiné en Canvas 2D : pas de bibliothèque, pas d'image, pas d'appel 
 n'importe rien d'autre que `svelte`, et seulement pour les composants : le moteur marche dans
 n'importe quelle page, avec ou sans framework.
 
-Né dans le projet Comptoir (`toryo-agent`), d'où vient son historique. Démo jouable de toutes
-les expressions : [`demo/robot-demo.html`](demo/robot-demo.html), à ouvrir dans un navigateur.
+Né dans le projet Comptoir (`toryo-agent`), d'où vient son historique. Pour le voir en situation,
+lancer `pnpm dev` : la [vitrine](#vitrine) s'ouvre dans le navigateur, avec une galerie, un widget
+de coin d'écran façon e-commerce, un chat pleine page et le sélecteur d'apparence. L'ancienne démo
+jouable de toutes les expressions, [`demo/robot-demo.html`](demo/robot-demo.html), s'ouvre
+directement dans un navigateur.
 
 ## Sommaire
 
@@ -31,7 +34,8 @@ les expressions : [`demo/robot-demo.html`](demo/robot-demo.html), à ouvrir dans
 13. [Tests](#tests)
 14. [Ajouter une coque](#ajouter-une-coque)
 15. [Limites connues](#limites-connues)
-16. [Développer le module](#développer-le-module)
+16. [Vitrine](#vitrine)
+17. [Développer le module](#développer-le-module)
 
 ## Prérequis
 
@@ -225,6 +229,18 @@ Le sélecteur ne sauvegarde rien : c'est au projet de le faire (voir
 [Enregistrer l'apparence](#enregistrer-lapparence-de-chacun)). L'aperçu et les vignettes ne
 s'endorment pas.
 
+Ses textes sont en français par défaut. `labels` les remplace, et `names` donne les noms des
+coques et des teintes, par identifiant de coque ou hex de teinte (le nom du catalogue pour ceux
+qui manquent) :
+
+```svelte
+<RobotLookPicker
+	bind:look
+	labels={{ shell: 'Shell', color: 'Colour', freeColor: 'Custom colour', preview: 'Preview' }}
+	names={{ pebble: 'Pebble', cat: 'Kitten', '#a3d6c1': 'Mint' }}
+/>
+```
+
 ## Le moteur sans Svelte
 
 ```ts
@@ -387,7 +403,7 @@ chaque projet. Pour exemple, voici où elles sont dans le projet d'origine (Comp
 | `mood.test.ts`                   | Node         | Amour, antenne, sommeil, réveil                                                          |
 | `engine.svelte.test.ts`          | Navigateur   | Pour chaque coque : yeux entiers (même « surpris »), couleur appliquée, clic sur le haut |
 | `Robot.svelte.test.ts`           | Navigateur   | Retour au galet menthe quand `look` disparaît                                            |
-| `RobotLookPicker.svelte.test.ts` | Navigateur   | Une coque se choisit dans sa couleur                                                     |
+| `RobotLookPicker.svelte.test.ts` | Navigateur   | Une coque se choisit dans sa couleur ; textes et noms traduits                           |
 
 Les tests « navigateur » demandent le mode navigateur de Vitest (`vitest-browser-svelte`, provider
 Playwright). Ici : `pnpm test` (voir [Développer le module](#développer-le-module)).
@@ -413,18 +429,40 @@ Playwright). Ici : `pnpm test` (voir [Développer le module](#développer-le-mod
 - **Une seule instance de `RobotDock`** par application, et un seul `RobotAnchor` affiché à la
   fois (état partagé dans `anchor.svelte.ts`).
 - **Textes en français** dans le module : noms des coques et des teintes (`looks.ts`), textes
-  par défaut de `Robot.svelte` et du sélecteur. Pour une autre langue, les traduire à ces
-  endroits.
+  par défaut de `Robot.svelte` et du sélecteur. Le sélecteur accepte des traductions
+  (`labels`, `names`) ; `Robot` prend un `label` ; le robot du dock garde son nom accessible
+  français quand il est sur un emplacement.
 - **Avertissement en développement** : au chargement d'une page qui contient le sélecteur, la
   console peut afficher « The specified value "" does not conform… valid CSS color ». Il vient de
   Svelte, qui vide un instant le champ couleur à l'hydratation ; la valeur est bien remise.
 - **Rendu côté serveur** : le canvas ne se dessine que dans le navigateur. Au premier affichage
   rendu par le serveur, l'emplacement est vide jusqu'au chargement du script.
 
+## Vitrine
+
+`pnpm dev` lance un serveur de développement Vite sur `showcase/` et l'ouvre dans le navigateur.
+C'est une petite application Svelte, en anglais, qui importe la bibliothèque directement depuis
+`src/lib` (les modifications s'affichent en direct) et ne fait pas partie du paquet publié. Quatre
+scènes :
+
+| Scène        | Ce qu'elle montre                                                                                                                                        |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Gallery      | Toutes les coques, toutes les expressions et `celebrate()`, sur de simples composants `Robot`                                                            |
+| Store widget | Une fausse boutique : le `RobotDock` attend dans le coin en bouton, puis se téléporte dans l'en-tête du panneau d'aide qu'il ouvre (`corner` → `anchor`) |
+| Chat         | Un assistant pleine page : le robot se tient au-dessus de la conversation sur un `RobotAnchor`, grand à l'accueil, puis plus petit                       |
+| Customize    | `RobotLookPicker` ; l'apparence choisie est gardée dans `localStorage` et habille le robot dans les autres scènes                                        |
+
+Dans la boutique et le chat, un faux assistant répond par mots-clés : le robot affiche `focus`
+pendant qu'il « écrit », puis réagit à la réponse (content, triste, inquiet, méfiant…), et fête
+une commande retrouvée. L'unique `RobotDock` vit dans `showcase/App.svelte` ; chaque scène dit
+seulement où il va et ce qu'il ressent (`showcase/stage.svelte.ts`), comme le ferait une
+application d'accueil.
+
 ## Développer le module
 
 ```sh
 pnpm install                          # outils de développement, et construit dist/
+pnpm dev                              # vitrine dans le navigateur
 pnpm exec playwright install chromium # une fois, pour les tests navigateur
 pnpm check                            # types (svelte-check)
 pnpm test                             # tests Node et navigateur

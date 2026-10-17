@@ -27,6 +27,7 @@
 		}
 	},
 	"scripts": {
+		"dev": "vite showcase",
 		"build": "svelte-package -o dist",
 		"prepare": "svelte-package -o dist",
 		"check": "svelte-check --tsconfig ./tsconfig.json",

@@ -1,13 +1,42 @@
 <!--
 	@component
 	Choice of the robot's shell and colour, with a live preview: `bind:look` to read it. Saving is
-	up to the host (for example hidden form fields fed from `look`).
+	up to the host (for example hidden form fields fed from `look`). `labels` and `names` translate
+	its texts (French by default).
 -->
+<script module lang="ts">
+	export type LookPickerLabels = {
+		shell: string;
+		color: string;
+		freeColor: string;
+		/** Accessible name of the preview. */
+		preview: string;
+	};
+</script>
+
 <script lang="ts">
 	import Robot from './Robot.svelte';
 	import { DEFAULT_LOOK, ROBOT_COLORS, SHELLS, suggestedColor, type RobotLook } from './looks.ts';
 
-	let { look = $bindable({ ...DEFAULT_LOOK }) }: { look?: RobotLook } = $props();
+	let {
+		look = $bindable({ ...DEFAULT_LOOK }),
+		labels,
+		names = {}
+	}: {
+		look?: RobotLook;
+		labels?: Partial<LookPickerLabels>;
+		/** Shell and colour names by shell id or colour hex; the catalogue's for those left out. */
+		names?: Record<string, string>;
+	} = $props();
+
+	const text: LookPickerLabels = $derived({
+		shell: 'Coque',
+		color: 'Couleur',
+		freeColor: 'Couleur libre',
+		preview: 'Aperçu du robot',
+		...labels
+	});
+	const nameOf = (item: { name: string }, key: string) => names[key] ?? item.name;
 
 	// As in a game: a shell comes in its own colour, then it can be repainted.
 	const pickShell = (shell: RobotLook['shell']) => (look = { shell, color: suggestedColor(shell) });
@@ -16,13 +45,13 @@
 </script>
 
 <div class="picker">
-	<div class="preview"><Robot {look} label="Aperçu du robot" sleepAfter={Infinity} /></div>
+	<div class="preview"><Robot {look} label={text.preview} sleepAfter={Infinity} /></div>
 	<div class="choices">
 		<fieldset>
-			<legend>Coque</legend>
+			<legend>{text.shell}</legend>
 			<div class="shells">
 				{#each SHELLS as shell (shell.id)}
-					<label class="shell" title={shell.name}>
+					<label class="shell" title={nameOf(shell, shell.id)}>
 						<input
 							type="radio"
 							name="robot-shell"
@@ -41,16 +70,16 @@
 								decorative
 							/></span
 						>
-						<span class="name">{shell.name}</span>
+						<span class="name">{nameOf(shell, shell.id)}</span>
 					</label>
 				{/each}
 			</div>
 		</fieldset>
 		<fieldset>
-			<legend>Couleur</legend>
+			<legend>{text.color}</legend>
 			<div class="colors">
 				{#each ROBOT_COLORS as color (color.hex)}
-					<label class="swatch" title={color.name}>
+					<label class="swatch" title={nameOf(color, color.hex)}>
 						<input
 							type="radio"
 							name="robot-color"
@@ -59,7 +88,7 @@
 							onchange={() => pickColor(color.hex)}
 						/>
 						<span style:background={color.hex}></span>
-						<span class="sr">{color.name}</span>
+						<span class="sr">{nameOf(color, color.hex)}</span>
 					</label>
 				{/each}
 				<label class="free" class:on={!isPreset}>
@@ -67,7 +96,7 @@
 						type="color"
 						value={look.color}
 						oninput={(e) => pickColor(e.currentTarget.value)}
-					/>Couleur libre
+					/>{text.freeColor}
 				</label>
 			</div>
 		</fieldset>
