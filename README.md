@@ -268,7 +268,7 @@ robot.destroy(); // stops the animation and removes every listener
 | Method               | Role                                                                                  |
 | -------------------- | ------------------------------------------------------------------------------------- |
 | `set(emotion)`       | Changes the requested expression                                                      |
-| `celebrate()`        | Jump for joy, sparkles, then the `happy` expression                                   |
+| `celebrate()`        | Jump for joy, sparkles, `happy` for 2.6 s, then back to its expression                |
 | `blink(side?)`       | Blinks (`'both'`, `'left'` or `'right'`)                                              |
 | `setLook(look)`      | Changes the shell and colour live                                                     |
 | `setInteractive(on)` | Turns reactions to taps on or off                                                     |
@@ -286,16 +286,19 @@ eyes: it is the "I'm thinking" expression.
 **The robot's own reactions** (`mood.ts`). They take over the requested expression, then hand it
 back:
 
-| Gesture                                                          | Reaction                                         |
-| ---------------------------------------------------------------- | ------------------------------------------------ |
-| Long hover (1.2 s)                                               | In love (heart eyes) as long as the cursor stays |
-| Click on the top of the shell (antenna, ears, top of the cloud…) | Surprised or curious, at random, for 1.8 s       |
-| Tap on the robot (`interactive`)                                 | Tickle; three quick taps: dizzy                  |
-| One minute without a click or key on the page                    | Falls asleep, even if the mouse moves            |
-| Click or key while asleep                                        | Wakes up, surprised, for 1.5 s                   |
+| Gesture                                                          | Reaction                                                                      |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Long hover (1.2 s)                                               | In love (heart eyes) as long as the cursor stays                              |
+| Click on the top of the shell (antenna, ears, top of the cloud…) | Surprised or curious, at random, for 1.8 s                                    |
+| Tap on the robot (`interactive`)                                 | Tickle; three quick taps: dizzy                                               |
+| One minute without a click or key on the page                    | Drowsy (`tired`) for the last 5 s, then falls asleep, even if the mouse moves |
+| Click or key while drowsy                                        | Perks up, back to the expression                                              |
+| Click or key while asleep                                        | Wakes up, surprised, for 1.5 s                                                |
 
 A newly requested expression (`set`, `emotion` prop) ends any reaction, sleep included. It does
-not fall asleep or fall in love during `focus`, `angry`, `suspicious` or `sleep`.
+not fall asleep or fall in love during `focus`, `angry`, `suspicious` or `sleep`. Drowsiness
+lasts 5 s, or half of `sleepAfter` when that is shorter than 10 s. `celebrate()` also counts as
+activity, and wakes it up.
 
 ## Shells and colours
 
@@ -396,7 +399,7 @@ each project. As an example, here is where they live in the original project (Co
 | File                             | Runs in | What it checks                                                                  |
 | -------------------------------- | ------- | ------------------------------------------------------------------------------- |
 | `looks.test.ts`                  | Node    | Catalogue, `normalizeLook`, `sameLook`, tones                                   |
-| `mood.test.ts`                   | Node    | Love, antenna, sleep, wake-up                                                   |
+| `mood.test.ts`                   | Node    | Love, antenna, celebration, drowsiness, sleep, wake-up                          |
 | `engine.svelte.test.ts`          | Browser | For each shell: whole eyes (even "surprised"), colour applied, click on the top |
 | `Robot.svelte.test.ts`           | Browser | Back to the mint pebble when `look` goes away                                   |
 | `RobotLookPicker.svelte.test.ts` | Browser | A shell is picked in its own colour; translated labels and names                |
@@ -441,7 +444,7 @@ and is not part of the published package. A switch in its header picks a light o
 
 | Scene        | What it shows                                                                                                                                    |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Gallery      | Every shell, every expression and `celebrate()`, on plain `Robot` components                                                                     |
+| Gallery      | Every shell and expression, and the animations (celebrate, falling asleep, reactions), on plain `Robot` components                               |
 | Store widget | A pretend shop: the `RobotDock` waits in the corner as a button, then teleports into the header of the help panel it opens (`corner` → `anchor`) |
 | Chat         | A full-page assistant: the robot stands above the conversation on a `RobotAnchor`, large on the welcome screen, then smaller                     |
 | Customize    | `RobotLookPicker`; the chosen look is kept in `localStorage` and dresses the robot in the other scenes                                           |
