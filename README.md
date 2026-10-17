@@ -11,8 +11,10 @@ Everything is drawn in Canvas 2D: no library, no image, no network call. The cod
 but `svelte`, and only for the components: the engine works in any page, with or without a
 framework.
 
-Born in the Comptoir project (`toryo-agent`), where its history comes from. Playable demo of every
-expression: [`demo/robot-demo.html`](demo/robot-demo.html), to open in a browser.
+Born in the Comptoir project (`toryo-agent`), where its history comes from. To see it in context,
+run `pnpm dev`: the [showcase](#showcase) opens in the browser with a gallery, an e-commerce
+corner widget, a full-page chat and the look picker. The older playable demo of every expression,
+[`demo/robot-demo.html`](demo/robot-demo.html), opens directly in a browser.
 
 ## Contents
 
@@ -31,7 +33,8 @@ expression: [`demo/robot-demo.html`](demo/robot-demo.html), to open in a browser
 13. [Tests](#tests)
 14. [Adding a shell](#adding-a-shell)
 15. [Known limitations](#known-limitations)
-16. [Developing the module](#developing-the-module)
+16. [Showcase](#showcase)
+17. [Developing the module](#developing-the-module)
 
 ## Prerequisites
 
@@ -427,10 +430,29 @@ Here: `pnpm test` (see [Developing the module](#developing-the-module)).
 - **Server-side rendering**: the canvas only draws in the browser. On the first server-rendered
   display, the slot is empty until the script loads.
 
+## Showcase
+
+`pnpm dev` starts a Vite dev server on `showcase/` and opens it in the browser. It is a small
+Svelte app, in English, that imports the library straight from `src/lib` (changes show up live)
+and is not part of the published package. Four scenes:
+
+| Scene        | What it shows                                                                                                                                    |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Gallery      | Every shell, every expression and `celebrate()`, on plain `Robot` components                                                                     |
+| Store widget | A pretend shop: the `RobotDock` waits in the corner as a button, then teleports into the header of the help panel it opens (`corner` → `anchor`) |
+| Chat         | A full-page assistant: the robot stands above the conversation on a `RobotAnchor`, large on the welcome screen, then smaller                     |
+| Customize    | `RobotLookPicker`; the chosen look is kept in `localStorage` and dresses the robot in the other scenes                                           |
+
+In the store and the chat, a pretend assistant answers by keyword: the robot shows `focus` while it
+"types", then reacts to the answer (happy, sad, worried, suspicious…), and celebrates a found
+order. The single `RobotDock` lives in `showcase/App.svelte`; each scene only says where it goes
+and how it feels (`showcase/stage.svelte.ts`), as a host app would.
+
 ## Developing the module
 
 ```sh
 pnpm install                          # development tools, and builds dist/
+pnpm dev                              # showcase in the browser
 pnpm exec playwright install chromium # once, for the browser tests
 pnpm check                            # types (svelte-check)
 pnpm test                             # Node and browser tests

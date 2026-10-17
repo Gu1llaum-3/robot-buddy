@@ -12,5 +12,5 @@
 		"noEmit": true,
 		"types": ["vite/client"]
 	},
-	"include": ["src", "vite.config.ts", "svelte.config.js"]
+	"include": ["src", "showcase", "vite.config.ts", "svelte.config.js"]
 }

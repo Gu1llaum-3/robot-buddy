@@ -14,6 +14,7 @@ keep both in sync when the public API, shells, files or tests change.
 ```sh
 pnpm install                          # also runs svelte-package (prepare) and builds dist/
 pnpm exec playwright install chromium # once, needed by the browser tests
+pnpm dev                              # showcase app in the browser (Vite on showcase/)
 pnpm check                            # types (svelte-check)
 pnpm test                             # all tests, Node + browser (vitest --run)
 pnpm build                            # package into dist/ (svelte-package)
@@ -67,6 +68,11 @@ user's look) are intentionally left to the host project; don't add them here.
 Adding a shell: add `{ id, name, color }` to `SHELLS` in `looks.ts` (new id, never reused), add
 its drawing to `SHELL_DRAWINGS` in `engine.ts`, and add a click point to `TOP` in
 `engine.svelte.test.ts` (the other per-shell checks pick the new shell up automatically).
+
+`showcase/` is a dev-only Svelte app (`pnpm dev`, own `vite.config.ts`, English UI) that imports
+`src/lib` directly: gallery, e-commerce corner widget, full-page chat, look picker. It mounts the
+single `RobotDock` in `App.svelte`; scenes set its `where`/`emotion` through `stage.svelte.ts`.
+It is not packaged (only `dist` is published) but is type-checked and Prettier-checked.
 
 `demo/robot-demo.html` is a standalone page with its own inline script; it does not import
 `src/lib`, so engine changes are not reflected there automatically.
