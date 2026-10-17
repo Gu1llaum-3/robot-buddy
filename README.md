@@ -361,6 +361,8 @@ Optional CSS variables, to set on `:root` or on a parent of the dock:
 | `--robot-z`                  | `15`           | Dock `z-index`: above the page, below its menus and panels |
 | `--robot-focus`              | `currentColor` | Focus ring of the corner button                            |
 | `--robot-glow`               | mint green     | Teleport glow                                              |
+| `--robot-zzz`                | `#4a6876`      | Colour of the sleep z's (`Robot`)                          |
+| `--robot-zzz-halo`           | `#fff`         | Halo around the z's; darken it on a dark page              |
 
 The component also uses the project's `--text`, `--text-2`, `--border`, `--panel`, `--hover` and
 `--accent` tokens when they exist (picker), with fallback values.

@@ -89,10 +89,11 @@
 			800 clamp(13px, 15cqw, 26px) / 1 Inter,
 			ui-sans-serif,
 			sans-serif;
-		color: #4a6876;
+		/* Variables for dark pages, where the white halo would smudge */
+		color: var(--robot-zzz, #4a6876);
 		text-shadow:
-			0 0 3px #fff,
-			0 0 3px #fff;
+			0 0 3px var(--robot-zzz-halo, #fff),
+			0 0 3px var(--robot-zzz-halo, #fff);
 	}
 	.zzz span {
 		position: absolute;
