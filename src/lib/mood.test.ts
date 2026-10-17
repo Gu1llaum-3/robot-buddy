@@ -45,11 +45,52 @@ describe('robot mood', () => {
 		);
 	});
 
-	describe('sleep', () => {
-		it('falls asleep after a while without a click or a key', () => {
+	describe('celebration', () => {
+		it('is happy for a moment, then back to the host expression', () => {
 			const mood = start();
-			expect(mood.current(SLEEP - 1)).toBe('neutral');
+			mood.setBase('angry');
+			mood.celebrate(1000);
+			expect(mood.current(1100)).toBe('happy');
+			expect(mood.current(5000)).toBe('angry');
+		});
+		it('wakes him up, and counts as activity', () => {
+			const mood = start();
+			mood.current(SLEEP);
+			mood.celebrate(SLEEP + 100);
+			expect(mood.current(SLEEP + 200)).toBe('happy');
+			expect(mood.current(SLEEP + 5000)).toBe('neutral');
+		});
+		it('ends when the host asks for another expression', () => {
+			const mood = start();
+			mood.celebrate(1000);
+			mood.setBase('focus');
+			expect(mood.current(1100)).toBe('focus');
+		});
+	});
+
+	describe('sleep', () => {
+		it('gets drowsy, then falls asleep after a while without a click or a key', () => {
+			const mood = start();
+			expect(mood.current(SLEEP - 6000)).toBe('neutral');
+			expect(mood.current(SLEEP - 1)).toBe('tired');
 			expect(mood.current(SLEEP)).toBe('sleep');
+		});
+		it('is only drowsy for half the delay when that is short', () => {
+			const mood = createMood({ sleepAfter: 4000 }, 0);
+			expect(mood.current(1900)).toBe('neutral');
+			expect(mood.current(2100)).toBe('tired');
+			expect(mood.current(4000)).toBe('sleep');
+		});
+		it('perks up without a start when activity comes while drowsy', () => {
+			const mood = start();
+			mood.current(SLEEP - 1000);
+			mood.activity(SLEEP - 900);
+			expect(mood.current(SLEEP - 800)).toBe('neutral');
+		});
+		it('does not get drowsy while the agent is working', () => {
+			const mood = start();
+			mood.setBase('focus');
+			expect(mood.current(SLEEP - 1)).toBe('focus');
 		});
 		it('is kept awake by activity', () => {
 			const mood = start();

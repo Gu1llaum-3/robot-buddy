@@ -272,7 +272,7 @@ robot.destroy(); // arrête l'animation et retire tous les écouteurs
 | Méthode              | Rôle                                                                                       |
 | -------------------- | ------------------------------------------------------------------------------------------ |
 | `set(emotion)`       | Change l'expression demandée                                                               |
-| `celebrate()`        | Saut de joie, étincelles, puis expression `happy`                                          |
+| `celebrate()`        | Saut de joie, étincelles, `happy` pendant 2,6 s, puis retour à son expression              |
 | `blink(side?)`       | Cligne (`'both'`, `'left'` ou `'right'`)                                                   |
 | `setLook(look)`      | Change la coque et la couleur en direct                                                    |
 | `setInteractive(on)` | Active ou coupe les réactions aux tapes                                                    |
@@ -290,17 +290,19 @@ les yeux : c'est l'expression « je réfléchis ».
 **Réactions du robot lui-même** (`mood.ts`). Elles passent par-dessus l'expression demandée, puis
 la rendent :
 
-| Geste                                                            | Réaction                                           |
-| ---------------------------------------------------------------- | -------------------------------------------------- |
-| Survol prolongé (1,2 s)                                          | Amoureux (yeux en cœur) tant que le curseur reste  |
-| Clic sur le haut de la coque (antenne, oreilles, haut du nuage…) | Surpris ou curieux, au hasard, pendant 1,8 s       |
-| Tape sur le robot (`interactive`)                                | Chatouille ; trois tapes rapides : tête qui tourne |
-| Une minute sans clic ni touche sur la page                       | Il s'endort, même si la souris bouge               |
-| Clic ou touche pendant qu'il dort                                | Réveil, surpris, pendant 1,5 s                     |
+| Geste                                                            | Réaction                                                                                |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Survol prolongé (1,2 s)                                          | Amoureux (yeux en cœur) tant que le curseur reste                                       |
+| Clic sur le haut de la coque (antenne, oreilles, haut du nuage…) | Surpris ou curieux, au hasard, pendant 1,8 s                                            |
+| Tape sur le robot (`interactive`)                                | Chatouille ; trois tapes rapides : tête qui tourne                                      |
+| Une minute sans clic ni touche sur la page                       | Somnolent (`tired`) les 5 dernières secondes, puis il s'endort, même si la souris bouge |
+| Clic ou touche pendant qu'il somnole                             | Il se ressaisit, retour à l'expression                                                  |
+| Clic ou touche pendant qu'il dort                                | Réveil, surpris, pendant 1,5 s                                                          |
 
 Une nouvelle expression demandée (`set`, prop `emotion`) met fin à toute réaction, sommeil
 compris. Il ne s'endort pas et ne devient pas amoureux pendant `focus`, `angry`, `suspicious` ou
-`sleep`.
+`sleep`. La somnolence dure 5 s, ou la moitié de `sleepAfter` quand celui-ci fait moins de 10 s.
+`celebrate()` compte aussi comme une activité, et le réveille.
 
 ## Coques et couleurs
 
@@ -402,7 +404,7 @@ chaque projet. Pour exemple, voici où elles sont dans le projet d'origine (Comp
 | Fichier                          | Où il tourne | Ce qu'il vérifie                                                                         |
 | -------------------------------- | ------------ | ---------------------------------------------------------------------------------------- |
 | `looks.test.ts`                  | Node         | Catalogue, `normalizeLook`, `sameLook`, tons                                             |
-| `mood.test.ts`                   | Node         | Amour, antenne, sommeil, réveil                                                          |
+| `mood.test.ts`                   | Node         | Amour, antenne, fête, somnolence, sommeil, réveil                                        |
 | `engine.svelte.test.ts`          | Navigateur   | Pour chaque coque : yeux entiers (même « surpris »), couleur appliquée, clic sur le haut |
 | `Robot.svelte.test.ts`           | Navigateur   | Retour au galet menthe quand `look` disparaît                                            |
 | `RobotLookPicker.svelte.test.ts` | Navigateur   | Une coque se choisit dans sa couleur ; textes et noms traduits                           |

@@ -38,7 +38,7 @@ export type RobotOptions = {
 
 export type Robot = {
 	set(emotion: Emotion): void;
-	/** Blink, squash, big hop, sparkles, then the happy expression: call it when a task is done. */
+	/** Blink, squash, big hop, sparkles, happy for a moment, then back: call it when a task is done. */
 	celebrate(): void;
 	blink(side?: 'both' | 'left' | 'right'): void;
 	/** Changes the shell and colour on the fly. */
@@ -776,7 +776,7 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 	}
 
 	// "Done!" celebration: quick blink, anticipation squash, big hop with stretch, happy eyes,
-	// a burst of sparkles, antenna wobble. Ends on the happy expression.
+	// a burst of sparkles, antenna wobble. Happy for a moment, then back to the host's expression.
 	function celebrate() {
 		clearTimeout(celebrateTimer);
 		blink();
@@ -784,7 +784,7 @@ export function createRobot(canvas: HTMLCanvasElement, options: RobotOptions = {
 		body.sx.v += 2; // anticipation
 		celebrateTimer = window.setTimeout(() => {
 			const now = performance.now();
-			mood.setBase('happy');
+			mood.celebrate(now);
 			switchEmotion('happy');
 			body.y.v -= 190;
 			body.sy.v += 1.3;

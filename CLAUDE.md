@@ -48,8 +48,8 @@ The framework-free core must stay free of Svelte and of DOM access at module loa
   Each shell is an entry in `SHELL_DRAWINGS` (`body`, `screen`, `top` required; `back`,
   `details`, `front`, `antenna`, `flat` optional).
 - `mood.ts` — pure state machine layering the robot's own reactions (love on hover, antenna
-  flick, sleep after inactivity, wake-up surprise) over the expression the host asked for.
-  Takes an explicit `now`, so it is tested without timers.
+  flick, celebration, drowsy then asleep after inactivity, wake-up surprise) over the expression
+  the host asked for. Takes an explicit `now`, so it is tested without timers.
 - `looks.ts` — catalogue of shells (`SHELLS`) and colours, `normalizeLook` (sanitises stored
   looks, falls back to `DEFAULT_LOOK`), and tone derivation (`shellPalette`).
 
