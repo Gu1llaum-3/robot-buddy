@@ -444,8 +444,9 @@ Playwright). Ici : `pnpm test` (voir [Développer le module](#développer-le-mod
 
 `pnpm dev` lance un serveur de développement Vite sur `showcase/` et l'ouvre dans le navigateur.
 C'est une petite application Svelte, en anglais, qui importe la bibliothèque directement depuis
-`src/lib` (les modifications s'affichent en direct) et ne fait pas partie du paquet publié. Quatre
-scènes :
+`src/lib` (les modifications s'affichent en direct) et ne fait pas partie du paquet publié. Un
+interrupteur dans son en-tête choisit un thème clair ou sombre (ou celui du système), pour voir les
+robots sur les deux. Quatre scènes :
 
 | Scène        | Ce qu'elle montre                                                                                                                                        |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |

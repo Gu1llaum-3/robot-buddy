@@ -436,7 +436,8 @@ Here: `pnpm test` (see [Developing the module](#developing-the-module)).
 
 `pnpm dev` starts a Vite dev server on `showcase/` and opens it in the browser. It is a small
 Svelte app, in English, that imports the library straight from `src/lib` (changes show up live)
-and is not part of the published package. Four scenes:
+and is not part of the published package. A switch in its header picks a light or dark theme
+(or the system's), to see the robots on both. Four scenes:
 
 | Scene        | What it shows                                                                                                                                    |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |

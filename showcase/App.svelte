@@ -1,4 +1,7 @@
 <script lang="ts">
+	import Moon from '@lucide/svelte/icons/moon';
+	import Sun from '@lucide/svelte/icons/sun';
+	import SunMoon from '@lucide/svelte/icons/sun-moon';
 	import { RobotDock } from '../src/lib/svelte.ts';
 	import { stage } from './stage.svelte.ts';
 	import Gallery from './scenes/Gallery.svelte';
@@ -17,6 +20,26 @@
 	let current = $state(fromHash());
 	const Scene = $derived(current.component);
 
+	// Light, dark, or the system's: kept per browser, applied as data-theme on <html>
+	const THEMES = ['system', 'light', 'dark'] as const;
+	const THEME_ICONS = { system: SunMoon, light: Sun, dark: Moon };
+	const THEME_KEY = 'robot-buddy-showcase-theme';
+	let theme: (typeof THEMES)[number] = $state('system');
+	try {
+		theme = THEMES.find((t) => t === localStorage.getItem(THEME_KEY)) ?? 'system';
+	} catch {
+		// Storage blocked: follow the system
+	}
+	$effect(() => {
+		if (theme === 'system') delete document.documentElement.dataset.theme;
+		else document.documentElement.dataset.theme = theme;
+		try {
+			localStorage.setItem(THEME_KEY, theme);
+		} catch {
+			// Storage blocked: the choice lasts until reload
+		}
+	});
+
 	let dock: ReturnType<typeof RobotDock> | undefined = $state();
 	$effect(() => {
 		stage.celebrate = () => dock?.celebrate();
@@ -34,6 +57,19 @@
 			>
 		{/each}
 	</nav>
+	<div class="theme" role="radiogroup" aria-label="Theme">
+		{#each THEMES as name (name)}
+			{@const Icon = THEME_ICONS[name]}
+			<button
+				type="button"
+				role="radio"
+				aria-checked={theme === name}
+				aria-label="{name} theme"
+				title="{name[0].toUpperCase()}{name.slice(1)} theme"
+				onclick={() => (theme = name)}><Icon size={16} aria-hidden="true" /></button
+			>
+		{/each}
+	</div>
 </header>
 
 <main>
@@ -83,8 +119,31 @@
 		font-weight: 500;
 		color: var(--text-3);
 	}
+	.theme {
+		display: flex;
+		padding: 3px;
+		border: 1px solid var(--border);
+		border-radius: 999px;
+	}
+	.theme button {
+		border: 0;
+		background: none;
+		border-radius: 999px;
+		display: grid;
+		place-items: center;
+		padding: 5px 9px;
+		color: var(--text-3);
+	}
+	.theme button:hover {
+		color: var(--text);
+	}
+	.theme button[aria-checked='true'] {
+		background: var(--hover);
+		color: var(--text);
+	}
 	nav {
 		display: flex;
+		margin-left: auto;
 		flex-wrap: wrap;
 		gap: 4px;
 	}

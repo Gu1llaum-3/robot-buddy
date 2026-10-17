@@ -66,7 +66,7 @@ const look = normalizeLook(user.robotLook);`}</code
 		margin: 12px 0 0;
 		padding: 14px 16px;
 		border-radius: 14px;
-		background: #1b2227;
+		background: var(--code-bg);
 		color: #e7ecef;
 		overflow-x: auto;
 	}

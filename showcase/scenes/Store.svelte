@@ -98,7 +98,7 @@
 	.banner {
 		padding: 36px 32px;
 		border-radius: 24px;
-		background: linear-gradient(120deg, #fbefe2, #f3e3f0);
+		background: var(--banner);
 		margin-bottom: 24px;
 	}
 	.banner h1 {
@@ -115,7 +115,7 @@
 		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
-		color: #b0683d;
+		color: var(--eyebrow);
 	}
 	.grid {
 		display: grid;
@@ -131,6 +131,7 @@
 	.photo {
 		aspect-ratio: 4 / 3;
 		border-radius: 12px;
+		filter: var(--photo);
 	}
 	article h2 {
 		font-size: 15px;
@@ -152,7 +153,7 @@
 		padding: 8px 14px;
 		font-size: 14px;
 		font-weight: 600;
-		box-shadow: 0 8px 24px rgba(20, 37, 47, 0.1);
+		box-shadow: 0 8px 24px var(--shadow);
 	}
 	.panel {
 		position: fixed;
@@ -166,7 +167,7 @@
 		background: var(--panel);
 		border: 1px solid var(--border);
 		border-radius: 22px;
-		box-shadow: 0 24px 60px rgba(20, 37, 47, 0.18);
+		box-shadow: 0 24px 60px var(--shadow);
 		overflow: hidden;
 		animation: rise 0.22s ease-out;
 	}
@@ -210,7 +211,7 @@
 		border-radius: 8px;
 	}
 	.close:hover {
-		background: rgba(0, 0, 0, 0.06);
+		background: var(--hover);
 	}
 	.body {
 		flex: 1;

@@ -70,7 +70,9 @@ its drawing to `SHELL_DRAWINGS` in `engine.ts`, and add a click point to `TOP` i
 `engine.svelte.test.ts` (the other per-shell checks pick the new shell up automatically).
 
 `showcase/` is a dev-only Svelte app (`pnpm dev`, own `vite.config.ts`, English UI) that imports
-`src/lib` directly: gallery, e-commerce corner widget, full-page chat, look picker. It mounts the
+`src/lib` directly: gallery, e-commerce corner widget, full-page chat, look picker, with a
+light/dark/system theme switch (tokens in `showcase.css`, icons from `@lucide/svelte`, a
+devDependency used only here: import icons by path, `@lucide/svelte/icons/<name>`). It mounts the
 single `RobotDock` in `App.svelte`; scenes set its `where`/`emotion` through `stage.svelte.ts`.
 It is not packaged (only `dist` is published) but is type-checked and Prettier-checked.
 
