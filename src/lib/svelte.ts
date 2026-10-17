@@ -4,3 +4,4 @@ export { default as Robot } from './Robot.svelte';
 export { default as RobotAnchor } from './RobotAnchor.svelte';
 export { default as RobotDock } from './RobotDock.svelte';
 export { default as RobotLookPicker } from './RobotLookPicker.svelte';
+export type { LookPickerLabels } from './RobotLookPicker.svelte';

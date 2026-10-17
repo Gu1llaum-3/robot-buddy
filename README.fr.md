@@ -225,6 +225,18 @@ Le sélecteur ne sauvegarde rien : c'est au projet de le faire (voir
 [Enregistrer l'apparence](#enregistrer-lapparence-de-chacun)). L'aperçu et les vignettes ne
 s'endorment pas.
 
+Ses textes sont en français par défaut. `labels` les remplace, et `names` donne les noms des
+coques et des teintes, par identifiant de coque ou hex de teinte (le nom du catalogue pour ceux
+qui manquent) :
+
+```svelte
+<RobotLookPicker
+	bind:look
+	labels={{ shell: 'Shell', color: 'Colour', freeColor: 'Custom colour', preview: 'Preview' }}
+	names={{ pebble: 'Pebble', cat: 'Kitten', '#a3d6c1': 'Mint' }}
+/>
+```
+
 ## Le moteur sans Svelte
 
 ```ts
@@ -387,7 +399,7 @@ chaque projet. Pour exemple, voici où elles sont dans le projet d'origine (Comp
 | `mood.test.ts`                   | Node         | Amour, antenne, sommeil, réveil                                                          |
 | `engine.svelte.test.ts`          | Navigateur   | Pour chaque coque : yeux entiers (même « surpris »), couleur appliquée, clic sur le haut |
 | `Robot.svelte.test.ts`           | Navigateur   | Retour au galet menthe quand `look` disparaît                                            |
-| `RobotLookPicker.svelte.test.ts` | Navigateur   | Une coque se choisit dans sa couleur                                                     |
+| `RobotLookPicker.svelte.test.ts` | Navigateur   | Une coque se choisit dans sa couleur ; textes et noms traduits                           |
 
 Les tests « navigateur » demandent le mode navigateur de Vitest (`vitest-browser-svelte`, provider
 Playwright). Ici : `pnpm test` (voir [Développer le module](#développer-le-module)).
@@ -413,8 +425,9 @@ Playwright). Ici : `pnpm test` (voir [Développer le module](#développer-le-mod
 - **Une seule instance de `RobotDock`** par application, et un seul `RobotAnchor` affiché à la
   fois (état partagé dans `anchor.svelte.ts`).
 - **Textes en français** dans le module : noms des coques et des teintes (`looks.ts`), textes
-  par défaut de `Robot.svelte` et du sélecteur. Pour une autre langue, les traduire à ces
-  endroits.
+  par défaut de `Robot.svelte` et du sélecteur. Le sélecteur accepte des traductions
+  (`labels`, `names`) ; `Robot` prend un `label` ; le robot du dock garde son nom accessible
+  français quand il est sur un emplacement.
 - **Avertissement en développement** : au chargement d'une page qui contient le sélecteur, la
   console peut afficher « The specified value "" does not conform… valid CSS color ». Il vient de
   Svelte, qui vide un instant le champ couleur à l'hydratation ; la valeur est bien remise.

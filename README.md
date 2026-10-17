@@ -223,6 +223,17 @@ The picker saves nothing: that is the project's job (see
 [Saving each user's look](#saving-each-users-look)). The preview and thumbnails never fall
 asleep.
 
+Its texts are in French by default. `labels` replaces them, and `names` gives the shell and tint
+names, keyed by shell id or tint hex (the catalogue's name for any left out):
+
+```svelte
+<RobotLookPicker
+	bind:look
+	labels={{ shell: 'Shell', color: 'Colour', freeColor: 'Custom colour', preview: 'Preview' }}
+	names={{ pebble: 'Pebble', cat: 'Kitten', '#a3d6c1': 'Mint' }}
+/>
+```
+
 ## The engine without Svelte
 
 ```ts
@@ -383,7 +394,7 @@ each project. As an example, here is where they live in the original project (Co
 | `mood.test.ts`                   | Node    | Love, antenna, sleep, wake-up                                                   |
 | `engine.svelte.test.ts`          | Browser | For each shell: whole eyes (even "surprised"), colour applied, click on the top |
 | `Robot.svelte.test.ts`           | Browser | Back to the mint pebble when `look` goes away                                   |
-| `RobotLookPicker.svelte.test.ts` | Browser | A shell is picked in its own colour                                             |
+| `RobotLookPicker.svelte.test.ts` | Browser | A shell is picked in its own colour; translated labels and names                |
 
 The browser tests need Vitest's browser mode (`vitest-browser-svelte`, Playwright provider).
 Here: `pnpm test` (see [Developing the module](#developing-the-module)).
@@ -408,7 +419,8 @@ Here: `pnpm test` (see [Developing the module](#developing-the-module)).
 - **A single `RobotDock` instance** per application, and a single `RobotAnchor` shown at a time
   (state shared in `anchor.svelte.ts`).
 - **French text** in the module: shell and tint names (`looks.ts`), default texts of
-  `Robot.svelte` and of the picker. For another language, translate them in those places.
+  `Robot.svelte` and of the picker. The picker takes translations (`labels`, `names`); `Robot`
+  takes a `label`; the dock's robot keeps its French accessible name when it stands on a slot.
 - **Development warning**: when loading a page that contains the picker, the console may show
   "The specified value "" does not conform… valid CSS color". It comes from Svelte, which briefly
   empties the colour input on hydration; the value is restored.
